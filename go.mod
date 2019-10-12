@@ -1,4 +1,4 @@
-module github.com/mDNSService/utils/latest
+module github.com/mDNSService/utils
 
 go 1.12
 
