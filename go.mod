@@ -1,4 +1,4 @@
-module github.com/mDNSService/utils
+module github.com/mDNSService/utils/latest
 
 go 1.12
 
@@ -8,10 +8,10 @@ require (
 )
 
 replace (
-	golang.org/x/net => github.com/golang/net master
-    golang.org/x/sync => github.com/golang/sync master
-    golang.org/x/sys => github.com/golang/sys master
-    golang.org/x/tools => github.com/golang/tools master
-    golang.org/x/crypto => github.com/golang/crypto master
-    golang.org/x/text => github.com/golang/text master
+	golang.org/x/net => github.com/golang/net latest
+    golang.org/x/sync => github.com/golang/sync latest
+    golang.org/x/sys => github.com/golang/sys latest
+    golang.org/x/tools => github.com/golang/tools latest
+    golang.org/x/crypto => github.com/golang/crypto latest
+    golang.org/x/text => github.com/golang/text latest
 )
