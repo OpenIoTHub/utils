@@ -56,9 +56,6 @@ func CheckmDNSServiceInfo(info map[string]string) error {
 		"model",
 		"mac",
 		"id",
-		//web,native,none
-		"ui-support",
-		"ui-first",
 		"author",
 		"email",
 		"home-page",
