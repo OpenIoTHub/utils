@@ -11,10 +11,8 @@ import (
 )
 
 var MDNSServiceBaseInfo = map[string]string{
-	"name": "OpenIoTHub服务",
-	//web,native,none
-	"ui-support":           "none",
-	"ui-first":             "none",
+	"name":                 "OpenIoTHub服务",
+	"model":                "com.iotserv.services.web",
 	"author":               "Farry",
 	"email":                "newfarry@126.com",
 	"home-page":            "https://github.com/OpenIoTHub",
