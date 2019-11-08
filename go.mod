@@ -4,9 +4,12 @@ go 1.12
 
 require (
 	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
-	github.com/grandcat/zeroconf v0.0.0-20190424104450-85eadb44205c
+	github.com/iotdevice/zeroconf v0.0.0-20190424104450-85eadb44205c
+	github.com/kr/pretty v0.1.0 // indirect
 	github.com/miekg/dns v1.1.22 // indirect
+	github.com/pkg/errors v0.8.1 // indirect
 	github.com/satori/go.uuid v1.2.1-0.20181028125025-b2ce2384e17b
+	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
 )
 
 replace (
