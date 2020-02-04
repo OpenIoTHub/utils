@@ -1,8 +1,8 @@
 package cryptoSnappy
 
 import (
-	"git.iotserv.com/iotserv/utils/crypto/conn"
-	"git.iotserv.com/iotserv/utils/snappy"
+	"github.com/OpenIoTHub/utils/crypto/conn"
+	"github.com/OpenIoTHub/utils/snappy"
 	"io"
 	"net"
 )
