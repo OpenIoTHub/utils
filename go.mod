@@ -3,12 +3,17 @@ module github.com/mDNSService/utils
 go 1.12
 
 require (
+	github.com/aead/chacha20 v0.0.0-20180709150244-8b13a72661da
 	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible
+	github.com/golang/snappy v0.0.1
 	github.com/iotdevice/zeroconf v0.0.0-20190424104450-85eadb44205c
+	github.com/jacobsa/go-serial v0.0.0-20180131005756-15cf729a72d4
 	github.com/kr/pretty v0.1.0 // indirect
 	github.com/miekg/dns v1.1.22 // indirect
-	github.com/pkg/errors v0.8.1 // indirect
+	github.com/pkg/errors v0.8.1
 	github.com/satori/go.uuid v1.2.1-0.20181028125025-b2ce2384e17b
+	golang.org/x/crypto v0.0.0-20190923035154-9ee001bba392
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
 )
 
