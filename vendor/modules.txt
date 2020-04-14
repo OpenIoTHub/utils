@@ -11,6 +11,10 @@ github.com/golang/snappy
 github.com/iotdevice/zeroconf
 # github.com/jacobsa/go-serial v0.0.0-20180131005756-15cf729a72d4
 github.com/jacobsa/go-serial/serial
+# github.com/libp2p/go-buffer-pool v0.0.1
+github.com/libp2p/go-buffer-pool
+# github.com/libp2p/go-msgio v0.0.4
+github.com/libp2p/go-msgio
 # github.com/miekg/dns v1.1.22
 github.com/miekg/dns
 # github.com/pkg/errors v0.8.1
