@@ -1,83 +1,107 @@
 package nettool
 
 import (
+	"errors"
 	"fmt"
 	"github.com/OpenIoTHub/utils/crypto"
+	"github.com/OpenIoTHub/utils/models"
+	"github.com/OpenIoTHub/utils/msg"
+	"github.com/xtaci/kcp-go/v5"
 	"log"
 	"net"
 	"strconv"
-	"strings"
 	"time"
 )
 
 func RunApiServer(port int) {
-	listener, err := net.ListenUDP("udp", &net.UDPAddr{IP: net.ParseIP("0.0.0.0"), Port: port})
+	//listener, err := net.ListenUDP("udp", &net.UDPAddr{IP: net.ParseIP("0.0.0.0"), Port: port})
+	listener, err := kcp.ListenWithOptions(fmt.Sprintf("0.0.0.0:%d", port), nil, 10, 3)
 	if err != nil {
 		log.Println(err)
 		return
 	}
-	go udpListener(listener)
+	go kcpListenerHdl(listener)
 }
 
-func udpListener(listener *net.UDPConn) {
-	data := make([]byte, 256)
+func kcpListenerHdl(listener *kcp.Listener) {
 	for {
-		_, remoteAddr, err := listener.ReadFromUDP(data)
+		conn, err := listener.AcceptKCP()
 		if err != nil {
-			fmt.Printf("error during read: %s", err)
+			log.Println("UDP API 错误:")
+			log.Println(err)
+			continue
 		}
-		//fmt.Printf("<%s> %s\n", remoteAddr, data[:n])
-		//:TODO 防阻塞
-		go func() {
-			_, err = listener.WriteToUDP([]byte(remoteAddr.String()), remoteAddr)
-			if err != nil {
-				fmt.Printf(err.Error())
-			}
-		}()
+		go connHdl(conn)
+	}
+}
+
+func connHdl(conn *kcp.UDPSession) {
+	//defer conn.Close()
+	remoteAddr := conn.RemoteAddr().(*net.UDPAddr)
+	rawMsg, err := msg.ReadMsg(conn)
+	if err != nil {
+		return
+	}
+	switch _ := rawMsg.(type) {
+	case *models.GetMyUDPPublicAddr:
+		{
+			_ = msg.WriteMsg(conn, remoteAddr)
+		}
+
+	default:
+		{
+			//:TODO 为什么重连会跑到
+			log.Println("从端口获取两种登录类别之一错误")
+			_ = msg.WriteMsg(conn, remoteAddr)
+		}
 	}
 }
 
 //获取一个listener的外部地址和端口
 func GetExternalIpPort(listener *net.UDPConn, token *crypto.TokenClaims) (ip string, port int, err error) {
-	udpaddr, err := net.ResolveUDPAddr("udp", token.Host+":"+strconv.Itoa(token.P2PApiPort))
-	//udpaddr, err := net.ResolveUDPAddr("udp", "tencent-shanghai-v1.host.nat-cloud.com:34321")
+	//udpaddr, err := net.ResolveUDPAddr("udp", token.Host+":"+strconv.Itoa(token.P2PApiPort))
+	conn, err := kcp.DialWithOptions(token.Host+":"+strconv.Itoa(token.P2PApiPort), nil, 10, 3)
 	if err != nil {
 		fmt.Printf("%s", err.Error())
 		return "", 0, err
 	}
 
-	err = listener.SetDeadline(time.Now().Add(time.Duration(3 * time.Second)))
+	err = conn.SetDeadline(time.Now().Add(time.Duration(3 * time.Second)))
 	if err != nil {
 		fmt.Printf("%s", err.Error())
 		return "", 0, err
 	}
 
-	listener.WriteToUDP([]byte("getIpPort"), udpaddr)
+	err = msg.WriteMsg(conn, models.GetMyUDPPublicAddr{})
+	if err != nil {
+		fmt.Printf("%s", err.Error())
+		return "", 0, err
+	}
 
 	log.Println("发送到服务器确定成功！等待确定外网ip和port")
-	data := make([]byte, 256)
-	n, _, err := listener.ReadFromUDP(data)
+	addr, err := msg.ReadMsg(conn)
 	log.Println("获取api的UDP包成功，开始解析自己listener出口地址和端口")
 	if err != nil {
 		fmt.Printf("获取listener的出口出错: %s", err.Error())
 		return "", 0, err
 	}
-	ipPort := string(data[:n])
-	ip = strings.Split(ipPort, ":")[0]
-	port, err = strconv.Atoi(strings.Split(ipPort, ":")[1])
-	if err != nil {
-		fmt.Printf(err.Error())
-		log.Println("解析listener外部出口信息错误")
-		return "", 0, err
-	}
 
-	err = listener.SetDeadline(time.Now().Add(time.Duration(99999 * time.Hour)))
-	if err != nil {
-		fmt.Printf("%s", err.Error())
-		return "", 0, err
-	}
+	switch m := addr.(type) {
+	case *net.UDPAddr:
+		{
+			return m.IP.String(), m.Port, err
+		}
 
-	log.Println("我的公网IP:", strings.Split(ipPort, ":")[0])
-	log.Println("内网的的出口端口:", port)
-	return ip, port, err
+	case *models.Error:
+		{
+			return "", 0, errors.New(m.Message)
+		}
+
+	default:
+		{
+			//:TODO 为什么重连会跑到
+			log.Println("从端口获取两种登录类别之一错误")
+			return "", 0, errors.New("获取UDP的外网地址失败:错误的信息返回")
+		}
+	}
 }
