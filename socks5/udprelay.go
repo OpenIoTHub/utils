@@ -2,7 +2,7 @@ package socks5
 
 import (
 	"encoding/binary"
-	"fmt"
+	"log"
 	"net"
 	"strconv"
 	"strings"
@@ -189,7 +189,7 @@ func handleUDPConnection(handle *SecurePacketConn, n int, src net.Addr, receive 
 		name := string(receive[idDm0 : idDm0+int(receive[idDmLen])])
 		// avoid panic: syscall: string with NUL passed to StringToUTF16 on windows.
 		if strings.ContainsRune(name, 0x00) {
-			fmt.Println("[udp]invalid domain name.")
+			log.Println("[udp]invalid domain name.")
 			return
 		}
 		dIP, err := net.ResolveIPAddr("ip", name) // carefully with const type
@@ -226,7 +226,7 @@ func handleUDPConnection(handle *SecurePacketConn, n int, src net.Addr, receive 
 		Debug.Printf("[udp]using cached client %s->%s via %s\n", src, dst, remote.LocalAddr())
 	}
 	if remote == nil {
-		fmt.Println("WTF")
+		log.Println("WTF")
 	}
 	remote.SetDeadline(time.Now().Add(udpTimeout))
 	n, err = remote.WriteTo(receive[reqLen:n], dst)
