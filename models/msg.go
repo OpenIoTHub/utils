@@ -69,7 +69,6 @@ func init() {
 	}
 }
 
-// Message wraps socket packages for communicating between frpc and frps.
 type Message interface{}
 
 // login
