@@ -80,7 +80,7 @@ func GetExternalIpPort(listener *net.UDPConn, token *crypto.TokenClaims) (ip str
 	}
 
 	log.Println("发送到服务器确定成功！等待确定外网ip和port")
-	addr, err := msg.ReadMsg(conn)
+	addr, err := msg.ReadMsgWithTimeOut(conn, time.Second)
 	log.Println("获取api的UDP包成功，开始解析自己listener出口地址和端口")
 	if err != nil {
 		fmt.Printf("获取listener的出口出错: %s", err.Error())
