@@ -42,9 +42,10 @@ func connHdl(conn *kcp.UDPSession) {
 	if err != nil {
 		return
 	}
-	switch _ := rawMsg.(type) {
+	switch m := rawMsg.(type) {
 	case *models.GetMyUDPPublicAddr:
 		{
+			_ = m
 			_ = msg.WriteMsg(conn, remoteAddr)
 		}
 
