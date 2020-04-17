@@ -11,33 +11,41 @@ var (
 	TypeStringMap = make(map[reflect.Type]string)
 
 	Types = []reflect.Type{
+		//服务器需要处理的消息
 		reflect.TypeOf(Login{}),
+		reflect.TypeOf(NewWorkConn{}),
+		reflect.TypeOf(ConnectToLogin{}),
+		//连接的消息
 		reflect.TypeOf(ConnectTCP{}),
 		reflect.TypeOf(ConnectSTCP{}),
 		reflect.TypeOf(ConnectUDP{}),
 		reflect.TypeOf(ConnectWs{}),
 		reflect.TypeOf(ConnectWss{}),
 		reflect.TypeOf(ConnectSerialPort{}),
-		reflect.TypeOf(ConnectToLogin{}),
-		reflect.TypeOf(Ping{}),
-		reflect.TypeOf(Pong{}),
+		reflect.TypeOf(ConnectSSH{}),
+		//P2P相关的消息
 		reflect.TypeOf(NewSubSession{}),
 		reflect.TypeOf(ReqNewP2PCtrl{}),
 		reflect.TypeOf(RemoteNetInfo{}),
 		reflect.TypeOf(ReqNewP2PCtrlAsClient{}),
-		reflect.TypeOf(OK{}),
+		//状态验证消息
 		reflect.TypeOf(CheckStatusRequest{}),
 		reflect.TypeOf(CheckStatusResponse{}),
 		//新的服务
 		reflect.TypeOf(NewService{}),
-		reflect.TypeOf(ConnectSSH{}),
 		reflect.TypeOf(RequestNewWorkConn{}),
-		reflect.TypeOf(NewWorkConn{}),
-		reflect.TypeOf(JsonResponse{}),
+
 		// UDP API
 		reflect.TypeOf(GetMyUDPPublicAddr{}),
 		reflect.TypeOf(net.UDPAddr{}),
+
+		reflect.TypeOf(Ping{}),
+		reflect.TypeOf(Pong{}),
+
+		reflect.TypeOf(OK{}),
 		reflect.TypeOf(Error{}),
+
+		reflect.TypeOf(JsonResponse{}),
 	}
 )
 
