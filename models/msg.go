@@ -12,9 +12,9 @@ var (
 
 	Types = []reflect.Type{
 		//服务器需要处理的消息
-		reflect.TypeOf(Login{}),
-		reflect.TypeOf(NewWorkConn{}),
-		reflect.TypeOf(ConnectToLogin{}),
+		reflect.TypeOf(GatewayLogin{}),
+		reflect.TypeOf(GatewayWorkConn{}),
+		reflect.TypeOf(OpenIoTHubLogin{}),
 		//连接的消息
 		reflect.TypeOf(ConnectTCP{}),
 		reflect.TypeOf(ConnectSTCP{}),
@@ -59,14 +59,14 @@ func init() {
 type Message interface{}
 
 // login
-type Login struct {
+type GatewayLogin struct {
 	Token string
 	Os    string
 	Arch  string
 }
 
 // Connect TO
-type ConnectToLogin struct {
+type OpenIoTHubLogin struct {
 	Token string
 	Os    string
 	Arch  string
@@ -160,7 +160,7 @@ type RequestNewWorkConn struct {
 	Config string
 }
 
-type NewWorkConn struct {
+type GatewayWorkConn struct {
 	RunId  string
 	Secret string
 }
