@@ -46,21 +46,17 @@ func GetDialIpPort(token *models.TokenClaims) (localAddr *net.UDPAddr, externalI
 	return localAddr, ip, port, nil
 }
 
-func GetP2PListener(token *models.TokenClaims) (localIps string, localPort int, externalIp string, externalPort int, listener *net.UDPConn, err error) {
-	localIps = GetIntranetIp()
-	//localPort = randint.GenerateRangeNum(10000, 60000)
-	localPort = 0
-	listener, err = net.ListenUDP("udp", &net.UDPAddr{IP: net.ParseIP("0.0.0.0"), Port: localPort})
+func GetP2PListener(token *models.TokenClaims) (externalUDPAddr *net.UDPAddr, listener *net.UDPConn, err error) {
+	listener, err = net.ListenUDP("udp", &net.UDPAddr{IP: net.ParseIP("0.0.0.0"), Port: 0})
 	if err != nil {
 		return
 	}
 	//获取监听的端口的外部ip和端口
-	externalIp, externalPort, err = GetExternalIpPort(listener, token)
+	externalUDPAddr, err = GetExternalIpPort(listener, token)
 	if err != nil {
 		log.Println(err)
 		return
 	}
-	localPort = listener.LocalAddr().(*net.UDPAddr).Port
 	return
 }
 
