@@ -10,7 +10,7 @@ import (
 )
 
 //获取一个随机UDP Dial的内部ip，端口，外部ip端口
-func GetDialIpPort(token *models.TokenClaims) (localAddr net.Addr, externalIp string, externalPort int, err error) {
+func GetDialIpPort(token *models.TokenClaims) (localAddr *net.UDPAddr, externalIp string, externalPort int, err error) {
 	udpaddr, err := net.ResolveUDPAddr("udp", token.Host+":"+strconv.Itoa(token.P2PApiPort))
 	//udpaddr, err := net.ResolveUDPAddr("udp", "tencent-shanghai-v1.host.nat-cloud.com:34321")
 	if err != nil {
@@ -42,7 +42,7 @@ func GetDialIpPort(token *models.TokenClaims) (localAddr net.Addr, externalIp st
 		return nil, "", 0, err
 	}
 	//return strings.Split(udpconn.LocalAddr().String(), ":")[0]
-	localAddr = udpconn.LocalAddr()
+	localAddr = udpconn.LocalAddr().(*net.UDPAddr)
 	return localAddr, ip, port, nil
 }
 
