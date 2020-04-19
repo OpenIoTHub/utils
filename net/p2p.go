@@ -4,48 +4,10 @@ import (
 	"github.com/OpenIoTHub/utils/models"
 	"log"
 	"net"
-	"strconv"
-	"strings"
 	"time"
 )
 
-//获取一个随机UDP Dial的内部ip，端口，外部ip端口
-func GetDialIpPort(token *models.TokenClaims) (localAddr *net.UDPAddr, externalIp string, externalPort int, err error) {
-	udpaddr, err := net.ResolveUDPAddr("udp", token.Host+":"+strconv.Itoa(token.P2PApiPort))
-	//udpaddr, err := net.ResolveUDPAddr("udp", "tencent-shanghai-v1.host.nat-cloud.com:34321")
-	if err != nil {
-		return nil, "", 0, err
-	}
-	udpconn, err := net.DialUDP("udp", nil, udpaddr)
-	defer udpconn.Close()
-	if err != nil {
-		log.Println(err.Error())
-		return nil, "", 0, err
-	}
-	err = udpconn.SetDeadline(time.Now().Add(time.Duration(3 * time.Second)))
-	if err != nil {
-		return nil, "", 0, err
-	}
-	_, err = udpconn.Write([]byte("getIpPort"))
-	if err != nil {
-		return nil, "", 0, err
-	}
-	data := make([]byte, 256)
-	n, err := udpconn.Read(data)
-	if err != nil {
-		return nil, "", 0, err
-	}
-	ipPort := string(data[:n])
-	ip := strings.Split(ipPort, ":")[0]
-	port, err := strconv.Atoi(strings.Split(ipPort, ":")[1])
-	if err != nil {
-		return nil, "", 0, err
-	}
-	//return strings.Split(udpconn.LocalAddr().String(), ":")[0]
-	localAddr = udpconn.LocalAddr().(*net.UDPAddr)
-	return localAddr, ip, port, nil
-}
-
+//获取一个随机UDP Listen的内部ip，端口，外部ip端口
 func GetP2PListener(token *models.TokenClaims) (externalUDPAddr *net.UDPAddr, listener *net.UDPConn, err error) {
 	listener, err = net.ListenUDP("udp", &net.UDPAddr{IP: net.ParseIP("0.0.0.0"), Port: 0})
 	if err != nil {
