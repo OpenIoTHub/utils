@@ -11,6 +11,7 @@ require (
 	github.com/jacobsa/go-serial v0.0.0-20180131005756-15cf729a72d4
 	github.com/kr/pretty v0.1.0 // indirect
 	github.com/libp2p/go-msgio v0.0.4
+	github.com/libp2p/go-yamux v1.3.6
 	github.com/miekg/dns v1.1.22 // indirect
 	github.com/pkg/errors v0.8.1
 	github.com/satori/go.uuid v1.2.1-0.20181028125025-b2ce2384e17b
