@@ -13,6 +13,8 @@ type TokenClaims struct {
 	TcpPort    int
 	KcpPort    int
 	TlsPort    int
+	HttpPort   int
+	HttpsPort  int
 	GrpcPort   int
 	P2PApiPort int
 	Permission int
@@ -26,6 +28,8 @@ func GetToken(salt, id, host string, tcpPort, kcpPort, tlsPort, p2pApiPort, perm
 		tcpPort,
 		kcpPort,
 		tlsPort,
+		80,
+		433,
 		12345,
 		p2pApiPort,
 		permission,
