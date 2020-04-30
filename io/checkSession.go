@@ -35,9 +35,9 @@ func CheckSession(muxSession *yamux.Session) error {
 	if muxSession == nil {
 		return errors.New("Session is nil")
 	}
-	//if muxSession.IsClosed() {
-	//	return errors.New("Session.IsClosed")
-	//}
+	if muxSession.IsClosed() {
+		return errors.New("Session.IsClosed")
+	}
 	stream, err := muxSession.OpenStream()
 	if err != nil {
 		return err
