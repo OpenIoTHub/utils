@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/OpenIoTHub/utils/models"
+	"reflect"
 )
 
 func main() {
@@ -18,4 +19,5 @@ func main() {
 	}
 	fmt.Println(tk.Host)
 	fmt.Println(tk.GrpcPort)
+	fmt.Println(reflect.TypeOf(&models.GatewayLogin{}).Elem())
 }
