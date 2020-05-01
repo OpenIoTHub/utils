@@ -24,7 +24,7 @@ func GetP2PListener(token *models.TokenClaims) (externalUDPAddr *net.UDPAddr, li
 }
 
 //client通过指定listener发送数据到explorer指定的p2p请求地址
-func SendPackToPeer(listener *net.UDPConn, ctrlmMsg *models.ReqNewP2PCtrl) {
+func SendPackToPeer(listener *net.UDPConn, ctrlmMsg *models.RemoteNetInfo) {
 	log.Println("发送包到远程：", ctrlmMsg.ExternalIp, ctrlmMsg.ExternalPort)
 	//发送5次防止丢包，稳妥点
 	for i := 1; i <= 5; i++ {

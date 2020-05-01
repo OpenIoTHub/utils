@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/OpenIoTHub/utils/models"
 	"github.com/OpenIoTHub/utils/msg"
+	nettool "github.com/OpenIoTHub/utils/net"
 	"github.com/libp2p/go-yamux"
 	"github.com/xtaci/kcp-go/v5"
 	"log"
@@ -43,13 +44,7 @@ func MakeP2PSessionAsClient(stream net.Conn, token *models.TokenClaims) (*yamux.
 			fmt.Printf("remote net info")
 			//TODO:认证；同内网直连；抽象出公共函数？
 			kcpconn, err := kcp.NewConn(fmt.Sprintf("%s:%d", m.ExternalIp, m.ExternalPort), nil, 10, 3, listener)
-			//设置
-			kcpconn.SetStreamMode(true)
-			kcpconn.SetWriteDelay(false)
-			kcpconn.SetNoDelay(0, 100, 1, 1)
-			kcpconn.SetWindowSize(128, 256)
-			kcpconn.SetMtu(1350)
-			kcpconn.SetACKNoDelay(true)
+			nettool.SetYamuxConn(kcpconn)
 			if err != nil {
 				fmt.Printf(err.Error())
 				return nil, err

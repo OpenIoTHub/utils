@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/OpenIoTHub/utils/models"
 	"github.com/OpenIoTHub/utils/msg"
+	nettool "github.com/OpenIoTHub/utils/net"
 	"github.com/libp2p/go-yamux"
 	"github.com/xtaci/kcp-go/v5"
 	"log"
@@ -14,32 +15,37 @@ import (
 //var ExternalPort int
 //var SendPackReqChan = make(chan *models.SendUdpPackReq,10)
 
-func NewP2PCtrlAsServer(stream net.Conn, ctrlmMsg *models.ReqNewP2PCtrl, token *models.TokenClaims) (*yamux.Session, error) {
+func NewP2PCtrlAsServer(stream net.Conn, token *models.TokenClaims) (*yamux.Session, error) {
+	defer stream.Close()
 	//监听一个随机端口号，接受P2P方的连接
 	externalUDPAddr, listener, err := GetP2PListener(token)
 	if err != nil {
 		log.Println(err)
 		return nil, err
 	}
-	SendPackToPeer(listener, ctrlmMsg)
-	//TODO：发送认证码用于后续校验
-	go msg.WriteMsg(stream, &models.RemoteNetInfo{
+	err = msg.WriteMsg(stream, &models.ReqNewP2PCtrlAsClient{
 		IntranetIp:   listener.LocalAddr().(*net.UDPAddr).IP.String(),
 		IntranetPort: listener.LocalAddr().(*net.UDPAddr).Port,
 		ExternalIp:   externalUDPAddr.IP.String(),
 		ExternalPort: externalUDPAddr.Port,
 	})
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	m, err := msg.ReadMsg(stream)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	RemoteNetInfo := m.(*models.RemoteNetInfo)
+	SendPackToPeer(listener, RemoteNetInfo)
+	//TODO：发送认证码用于后续校验
 	//TODO:这里控制连接的处理？
-	defer stream.Close()
 	//开始转kcp监听
-	return kcpListener(listener, token)
-}
-
-//TODO：listener转kcp服务侦听
-func kcpListener(listener *net.UDPConn, token *models.TokenClaims) (*yamux.Session, error) {
 	kcplis, err := kcp.ServeConn(nil, 10, 3, listener)
 	if err != nil {
-		fmt.Printf(err.Error())
+		log.Printf(err.Error())
 		return nil, err
 	}
 	kcplis.SetDeadline(time.Now().Add(time.Second * 5))
@@ -48,22 +54,16 @@ func kcpListener(listener *net.UDPConn, token *models.TokenClaims) (*yamux.Sessi
 	log.Println("start p2p kcp accpet")
 	kcpconn, err := kcplis.AcceptKCP()
 	if err != nil {
-		kcplis.Close()
+		if kcplis != nil {
+			kcplis.Close()
+		}
 		if kcpconn != nil {
 			kcpconn.Close()
 		}
 		log.Println(err.Error())
 		return nil, err
 	}
-	//配置
-	//kcpconn.SetDeadline(time.Now().Add(time.Second * 5))
-	kcpconn.SetStreamMode(true)
-	kcpconn.SetWriteDelay(false)
-	kcpconn.SetNoDelay(0, 100, 1, 1)
-	kcpconn.SetWindowSize(128, 256)
-	kcpconn.SetMtu(1350)
-	kcpconn.SetACKNoDelay(true)
-
+	nettool.SetYamuxConn(kcpconn)
 	log.Println("accpeted")
 	log.Println(kcpconn.RemoteAddr())
 	//	从从conn中读取p2p另一方发来的认证消息，认证成功之后包装为mux服务端
@@ -72,10 +72,6 @@ func kcpListener(listener *net.UDPConn, token *models.TokenClaims) (*yamux.Sessi
 		kcplis.Close()
 		return nil, err
 	}
-	return kcpConnHdl(kcpconn, token)
-}
-
-func kcpConnHdl(kcpconn net.Conn, token *models.TokenClaims) (*yamux.Session, error) {
 	rawMsg, err := msg.ReadMsgWithTimeOut(kcpconn, time.Second*3)
 	if err != nil {
 		kcpconn.Close()
