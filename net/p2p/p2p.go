@@ -1,7 +1,8 @@
-package nettool
+package p2p
 
 import (
 	"github.com/OpenIoTHub/utils/models"
+	"github.com/OpenIoTHub/utils/net"
 	"log"
 	"net"
 	"time"
@@ -14,7 +15,7 @@ func GetP2PListener(token *models.TokenClaims) (externalUDPAddr *net.UDPAddr, li
 		return
 	}
 	//获取监听的端口的外部ip和端口
-	externalUDPAddr, err = GetExternalIpPort(listener, token)
+	externalUDPAddr, err = nettool.GetExternalIpPort(listener, token)
 	if err != nil {
 		log.Println(err)
 		return
