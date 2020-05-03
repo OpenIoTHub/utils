@@ -1,6 +1,7 @@
 package gateway
 
 import (
+	"errors"
 	"fmt"
 	"github.com/OpenIoTHub/utils/models"
 	"github.com/OpenIoTHub/utils/msg"
@@ -14,14 +15,14 @@ import (
 )
 
 //作为客户端主动去连接内网client的方式创建穿透连接
-func MakeP2PSessionAsClient(stream net.Conn, token *models.TokenClaims) {
+func MakeP2PSessionAsClient(stream net.Conn, token *models.TokenClaims) (*yamux.Session, error) {
 	if stream != nil {
 		defer stream.Close()
 	}
 	ExternalUDPAddr, listener, err := p2p.GetP2PListener(token)
 	if err != nil {
 		log.Println(err.Error())
-		return
+		return nil, err
 	}
 	msgsd := &models.ReqNewP2PCtrlAsServer{
 		IntranetIp:   listener.LocalAddr().(*net.UDPAddr).IP.String(),
@@ -32,12 +33,12 @@ func MakeP2PSessionAsClient(stream net.Conn, token *models.TokenClaims) {
 	err = msg.WriteMsg(stream, msgsd)
 	if err != nil {
 		log.Println(err)
-		return
+		return nil, err
 	}
 	rawMsg, err := msg.ReadMsg(stream)
 	if err != nil {
 		log.Println(err)
-		return
+		return nil, err
 	}
 	switch m := rawMsg.(type) {
 	case *models.RemoteNetInfo:
@@ -47,7 +48,7 @@ func MakeP2PSessionAsClient(stream net.Conn, token *models.TokenClaims) {
 			kcpconn, err := kcp.NewConn(fmt.Sprintf("%s:%d", m.ExternalIp, m.ExternalPort), nil, 10, 3, listener)
 			if err != nil {
 				fmt.Printf(err.Error())
-				return
+				return nil, err
 			}
 			//设置
 			nettool.SetYamuxConn(kcpconn)
@@ -56,14 +57,14 @@ func MakeP2PSessionAsClient(stream net.Conn, token *models.TokenClaims) {
 			if err != nil {
 				kcpconn.Close()
 				log.Println(err)
-				return
+				return nil, err
 			}
 
 			rawMsg, err := msg.ReadMsgWithTimeOut(kcpconn, time.Second*3)
 			if err != nil {
 				kcpconn.Close()
 				log.Println(err)
-				return
+				return nil, err
 			}
 			switch m := rawMsg.(type) {
 			case *models.Pong:
@@ -79,10 +80,10 @@ func MakeP2PSessionAsClient(stream net.Conn, token *models.TokenClaims) {
 							p2pSubSession.Close()
 						}
 						fmt.Printf("create sub session err:" + err.Error())
-						return
+						return nil, err
 					}
 					//return p2pSubSession
-					go dlSubSession(p2pSubSession, token)
+					return p2pSubSession, err
 				}
 			default:
 				fmt.Printf("type err")
@@ -91,4 +92,5 @@ func MakeP2PSessionAsClient(stream net.Conn, token *models.TokenClaims) {
 	default:
 		fmt.Printf("type err")
 	}
+	return nil, errors.New("gateway p2pManagerAsClient 失败")
 }
