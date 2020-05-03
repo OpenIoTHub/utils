@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-func NewP2PCtrlAsServer(stream net.Conn, ctrlmMsg *models.ReqNewP2PCtrlAsServer, token *models.TokenClaims) (*yamux.Session, error) {
+func MakeP2PSessionAsServer(stream net.Conn, ctrlmMsg *models.ReqNewP2PCtrlAsServer, token *models.TokenClaims) (*yamux.Session, error) {
 	defer stream.Close()
 	//监听一个随机端口号，接受P2P方的连接
 	externalUDPAddr, listener, err := p2p.GetP2PListener(token)

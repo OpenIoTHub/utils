@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-func NewP2PCtrlAsServer(newstream net.Conn, TokenModel *models.TokenClaims) (*yamux.Session, error) {
+func MakeP2PSessionAsServer(newstream net.Conn, TokenModel *models.TokenClaims) (*yamux.Session, error) {
 	err := msg.WriteMsg(newstream, &models.ReqNewP2PCtrlAsClient{})
 	if err != nil {
 		log.Println(err)
