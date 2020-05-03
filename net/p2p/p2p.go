@@ -35,3 +35,23 @@ func SendPackToPeer(listener *net.UDPConn, ctrlmMsg *models.RemoteNetInfo) {
 		time.Sleep(time.Millisecond * 100)
 	}
 }
+
+//client通过指定listener发送数据到explorer指定的p2p请求地址
+func SendPackToPeerByReqNewP2PCtrlAsServer(listener *net.UDPConn, ctrlmMsg *models.ReqNewP2PCtrlAsServer) {
+	SendPackToPeer(listener, &models.RemoteNetInfo{
+		IntranetIp:   ctrlmMsg.IntranetIp,
+		IntranetPort: ctrlmMsg.IntranetPort,
+		ExternalIp:   ctrlmMsg.ExternalIp,
+		ExternalPort: ctrlmMsg.ExternalPort,
+	})
+}
+
+//client通过指定listener发送数据到explorer指定的p2p请求地址
+func SendPackToPeerByReqNewP2PCtrlAsClient(listener *net.UDPConn, ctrlmMsg *models.ReqNewP2PCtrlAsClient) {
+	SendPackToPeer(listener, &models.RemoteNetInfo{
+		IntranetIp:   ctrlmMsg.IntranetIp,
+		IntranetPort: ctrlmMsg.IntranetPort,
+		ExternalIp:   ctrlmMsg.ExternalIp,
+		ExternalPort: ctrlmMsg.ExternalPort,
+	})
+}
