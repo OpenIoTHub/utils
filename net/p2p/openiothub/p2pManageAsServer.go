@@ -13,13 +13,19 @@ import (
 	"time"
 )
 
-func MakeP2PSessionAsServer(newstream net.Conn, TokenModel *models.TokenClaims) (*yamux.Session, error) {
-	err := msg.WriteMsg(newstream, &models.ReqNewP2PCtrlAsClient{})
+func MakeP2PSessionAsServer(stream net.Conn, TokenModel *models.TokenClaims) (*yamux.Session, error) {
+	//TODO:这里控制连接的处理？
+	if stream != nil {
+		defer stream.Close()
+	} else {
+		return nil, errors.New("stream is nil")
+	}
+	err := msg.WriteMsg(stream, &models.ReqNewP2PCtrlAsClient{})
 	if err != nil {
 		log.Println(err)
 		return nil, err
 	}
-	rawMsg, err := msg.ReadMsgWithTimeOut(newstream, time.Second*5)
+	rawMsg, err := msg.ReadMsgWithTimeOut(stream, time.Second*5)
 	if err != nil {
 		log.Println(err)
 		return nil, err
@@ -38,14 +44,12 @@ func MakeP2PSessionAsServer(newstream net.Conn, TokenModel *models.TokenClaims) 
 			go func() {
 				time.Sleep(time.Second)
 				//TODO：发送认证码用于后续校验
-				msg.WriteMsg(newstream, &models.RemoteNetInfo{
+				msg.WriteMsg(stream, &models.RemoteNetInfo{
 					IntranetIp:   listener.LocalAddr().(*net.UDPAddr).IP.String(),
 					IntranetPort: listener.LocalAddr().(*net.UDPAddr).Port,
 					ExternalIp:   externalUDPAddr.IP.String(),
 					ExternalPort: externalUDPAddr.Port,
 				})
-				//TODO:这里控制连接的处理？
-				newstream.Close()
 			}()
 			return kcpListener(listener)
 		}

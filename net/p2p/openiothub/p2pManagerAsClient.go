@@ -1,6 +1,7 @@
 package openiothub
 
 import (
+	"errors"
 	"fmt"
 	"github.com/OpenIoTHub/utils/models"
 	"github.com/OpenIoTHub/utils/msg"
@@ -15,7 +16,11 @@ import (
 
 //作为客户端主动去连接内网client的方式创建穿透连接
 func MakeP2PSessionAsClient(stream net.Conn, TokenModel *models.TokenClaims) (*yamux.Session, error) {
-	defer stream.Close()
+	if stream != nil {
+		defer stream.Close()
+	} else {
+		return nil, errors.New("stream is nil")
+	}
 	externalUDPAddr, listener, err := p2p.GetP2PListener(TokenModel)
 	if err != nil {
 		log.Println(err.Error())

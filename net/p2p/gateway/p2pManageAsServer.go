@@ -1,6 +1,7 @@
 package gateway
 
 import (
+	"errors"
 	"fmt"
 	"github.com/OpenIoTHub/utils/models"
 	"github.com/OpenIoTHub/utils/msg"
@@ -14,7 +15,11 @@ import (
 )
 
 func MakeP2PSessionAsServer(stream net.Conn, ctrlmMsg *models.ReqNewP2PCtrlAsServer, token *models.TokenClaims) (*yamux.Session, error) {
-	defer stream.Close()
+	if stream != nil {
+		defer stream.Close()
+	} else {
+		return nil, errors.New("stream is nil")
+	}
 	//监听一个随机端口号，接受P2P方的连接
 	externalUDPAddr, listener, err := p2p.GetP2PListener(token)
 	if err != nil {

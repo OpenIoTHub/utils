@@ -15,9 +15,11 @@ import (
 )
 
 //作为客户端主动去连接内网client的方式创建穿透连接
-func MakeP2PSessionAsClient(stream net.Conn, token *models.TokenClaims) (*yamux.Session, error) {
+func MakeP2PSessionAsClient(stream net.Conn, ctrlmMsg *models.ReqNewP2PCtrlAsClient, token *models.TokenClaims) (*yamux.Session, error) {
 	if stream != nil {
 		defer stream.Close()
+	} else {
+		return nil, errors.New("stream is nil")
 	}
 	ExternalUDPAddr, listener, err := p2p.GetP2PListener(token)
 	if err != nil {
