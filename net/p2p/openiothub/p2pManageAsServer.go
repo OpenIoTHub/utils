@@ -20,7 +20,18 @@ func MakeP2PSessionAsServer(stream net.Conn, TokenModel *models.TokenClaims) (*y
 	} else {
 		return nil, errors.New("stream is nil")
 	}
-	err := msg.WriteMsg(stream, &models.ReqNewP2PCtrlAsClient{})
+	//监听一个随机端口号，接受P2P方的连接
+	ExternalUDPAddr, listener, err := p2p.GetP2PListener(TokenModel)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	err = msg.WriteMsg(stream, &models.ReqNewP2PCtrlAsClient{
+		IntranetIp:   listener.LocalAddr().(*net.UDPAddr).IP.String(),
+		IntranetPort: listener.LocalAddr().(*net.UDPAddr).Port,
+		ExternalIp:   ExternalUDPAddr.IP.String(),
+		ExternalPort: ExternalUDPAddr.Port,
+	})
 	if err != nil {
 		log.Println(err)
 		return nil, err
@@ -31,26 +42,14 @@ func MakeP2PSessionAsServer(stream net.Conn, TokenModel *models.TokenClaims) (*y
 		return nil, err
 	}
 	switch m := rawMsg.(type) {
-	case *models.ReqNewP2PCtrlAsServer:
+	case *models.RemoteNetInfo:
 		{
-			//监听一个随机端口号，接受P2P方的连接
-			externalUDPAddr, listener, err := p2p.GetP2PListener(TokenModel)
+			p2p.SendPackToPeer(listener, m)
+			err = msg.WriteMsg(stream, &models.OK{})
 			if err != nil {
 				log.Println(err)
 				return nil, err
 			}
-			p2p.SendPackToPeerByReqNewP2PCtrlAsServer(listener, m)
-			//开始转kcp监听
-			go func() {
-				time.Sleep(time.Second)
-				//TODO：发送认证码用于后续校验
-				msg.WriteMsg(stream, &models.RemoteNetInfo{
-					IntranetIp:   listener.LocalAddr().(*net.UDPAddr).IP.String(),
-					IntranetPort: listener.LocalAddr().(*net.UDPAddr).Port,
-					ExternalIp:   externalUDPAddr.IP.String(),
-					ExternalPort: externalUDPAddr.Port,
-				})
-			}()
 			return kcpListener(listener)
 		}
 	default:
@@ -72,7 +71,9 @@ func kcpListener(listener *net.UDPConn) (*yamux.Session, error) {
 	log.Println("start p2p kcp accpet")
 	kcpconn, err := kcplis.AcceptKCP()
 	if err != nil {
-		kcplis.Close()
+		if kcplis != nil {
+			kcplis.Close()
+		}
 		if kcpconn != nil {
 			kcpconn.Close()
 		}
@@ -81,13 +82,8 @@ func kcpListener(listener *net.UDPConn) (*yamux.Session, error) {
 	}
 	//配置
 	nettool.SetYamuxConn(kcpconn)
-
 	log.Println("accpeted")
 	log.Println(kcpconn.RemoteAddr())
-	//b:=make([]byte,1024)
-	//n,err:=conn.Read(b)
-	//log.Println(string(b[0:n]))
-	//lis.Close()
 	//	从从conn中读取p2p另一方发来的认证消息，认证成功之后包装为mux服务端
 	err = kcplis.SetDeadline(time.Time{})
 	if err != nil {
@@ -96,7 +92,7 @@ func kcpListener(listener *net.UDPConn) (*yamux.Session, error) {
 	return kcpConnHdl(kcpconn)
 }
 
-func kcpConnHdl(kcpconn net.Conn) (*yamux.Session, error) {
+func kcpConnHdl(kcpconn *kcp.UDPSession) (*yamux.Session, error) {
 	//:TODO 超时返回
 	rawMsg, err := msg.ReadMsgWithTimeOut(kcpconn, time.Second*2)
 	if err != nil {

@@ -26,7 +26,7 @@ func MakeP2PSessionAsClient(stream net.Conn, ctrlmMsg *models.ReqNewP2PCtrlAsCli
 		log.Println(err.Error())
 		return nil, err
 	}
-	msgsd := &models.ReqNewP2PCtrlAsServer{
+	msgsd := &models.RemoteNetInfo{
 		IntranetIp:   listener.LocalAddr().(*net.UDPAddr).IP.String(),
 		IntranetPort: listener.LocalAddr().(*net.UDPAddr).Port,
 		ExternalIp:   ExternalUDPAddr.IP.String(),
@@ -43,18 +43,19 @@ func MakeP2PSessionAsClient(stream net.Conn, ctrlmMsg *models.ReqNewP2PCtrlAsCli
 		return nil, err
 	}
 	switch m := rawMsg.(type) {
-	case *models.RemoteNetInfo:
+	case *models.OK:
 		{
+			_ = m
 			fmt.Printf("remote net info")
 			//TODO:认证；同内网直连；抽象出公共函数？
-			kcpconn, err := kcp.NewConn(fmt.Sprintf("%s:%d", m.ExternalIp, m.ExternalPort), nil, 10, 3, listener)
+			kcpconn, err := kcp.NewConn(fmt.Sprintf("%s:%d", ctrlmMsg.ExternalIp, ctrlmMsg.ExternalPort), nil, 10, 3, listener)
 			if err != nil {
 				fmt.Printf(err.Error())
 				return nil, err
 			}
 			//设置
 			nettool.SetYamuxConn(kcpconn)
-
+			time.Sleep(time.Second)
 			err = msg.WriteMsg(kcpconn, &models.Ping{})
 			if err != nil {
 				kcpconn.Close()
