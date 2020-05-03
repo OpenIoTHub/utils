@@ -16,7 +16,9 @@ import (
 //var SendPackReqChan = make(chan *models.SendUdpPackReq,10)
 
 func NewP2PCtrlAsServer(stream net.Conn, token *models.TokenClaims) (*yamux.Session, error) {
-	defer stream.Close()
+	if stream != nil {
+		defer stream.Close()
+	}
 	//监听一个随机端口号，接受P2P方的连接
 	externalUDPAddr, listener, err := GetP2PListener(token)
 	if err != nil {
