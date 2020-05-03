@@ -22,7 +22,7 @@ func MakeP2PSessionAsClient(stream net.Conn, token *models.TokenClaims) (*yamux.
 		log.Println(err.Error())
 		return nil, err
 	}
-	msgsd := &models.ReqNewP2PCtrl{
+	msgsd := &models.ReqNewP2PCtrlAsServer{
 		IntranetIp:   listener.LocalAddr().(*net.UDPAddr).IP.String(),
 		IntranetPort: listener.LocalAddr().(*net.UDPAddr).Port,
 		ExternalIp:   ExternalUDPAddr.IP.String(),
