@@ -1,10 +1,11 @@
-package p2p
+package gateway
 
 import (
 	"fmt"
 	"github.com/OpenIoTHub/utils/models"
 	"github.com/OpenIoTHub/utils/msg"
 	nettool "github.com/OpenIoTHub/utils/net"
+	"github.com/OpenIoTHub/utils/net/p2p"
 	"github.com/libp2p/go-yamux"
 	"github.com/xtaci/kcp-go/v5"
 	"log"
@@ -13,14 +14,14 @@ import (
 )
 
 //作为客户端主动去连接内网client的方式创建穿透连接
-func MakeP2PSessionAsClient(stream net.Conn, token *models.TokenClaims) (*yamux.Session, error) {
+func MakeP2PSessionAsClient(stream net.Conn, token *models.TokenClaims) {
 	if stream != nil {
 		defer stream.Close()
 	}
-	ExternalUDPAddr, listener, err := GetP2PListener(token)
+	ExternalUDPAddr, listener, err := p2p.GetP2PListener(token)
 	if err != nil {
 		log.Println(err.Error())
-		return nil, err
+		return
 	}
 	msgsd := &models.ReqNewP2PCtrlAsServer{
 		IntranetIp:   listener.LocalAddr().(*net.UDPAddr).IP.String(),
@@ -31,12 +32,12 @@ func MakeP2PSessionAsClient(stream net.Conn, token *models.TokenClaims) (*yamux.
 	err = msg.WriteMsg(stream, msgsd)
 	if err != nil {
 		log.Println(err)
-		return nil, err
+		return
 	}
 	rawMsg, err := msg.ReadMsg(stream)
 	if err != nil {
 		log.Println(err)
-		return nil, err
+		return
 	}
 	switch m := rawMsg.(type) {
 	case *models.RemoteNetInfo:
@@ -44,23 +45,25 @@ func MakeP2PSessionAsClient(stream net.Conn, token *models.TokenClaims) (*yamux.
 			fmt.Printf("remote net info")
 			//TODO:认证；同内网直连；抽象出公共函数？
 			kcpconn, err := kcp.NewConn(fmt.Sprintf("%s:%d", m.ExternalIp, m.ExternalPort), nil, 10, 3, listener)
-			nettool.SetYamuxConn(kcpconn)
 			if err != nil {
 				fmt.Printf(err.Error())
-				return nil, err
+				return
 			}
+			//设置
+			nettool.SetYamuxConn(kcpconn)
+
 			err = msg.WriteMsg(kcpconn, &models.Ping{})
 			if err != nil {
 				kcpconn.Close()
 				log.Println(err)
-				return nil, err
+				return
 			}
 
 			rawMsg, err := msg.ReadMsgWithTimeOut(kcpconn, time.Second*3)
 			if err != nil {
 				kcpconn.Close()
 				log.Println(err)
-				return nil, err
+				return
 			}
 			switch m := rawMsg.(type) {
 			case *models.Pong:
@@ -76,10 +79,10 @@ func MakeP2PSessionAsClient(stream net.Conn, token *models.TokenClaims) (*yamux.
 							p2pSubSession.Close()
 						}
 						fmt.Printf("create sub session err:" + err.Error())
-						return nil, err
+						return
 					}
 					//return p2pSubSession
-					return p2pSubSession, err
+					go dlSubSession(p2pSubSession, token)
 				}
 			default:
 				fmt.Printf("type err")
@@ -88,5 +91,4 @@ func MakeP2PSessionAsClient(stream net.Conn, token *models.TokenClaims) (*yamux.
 	default:
 		fmt.Printf("type err")
 	}
-	return nil, err
 }
