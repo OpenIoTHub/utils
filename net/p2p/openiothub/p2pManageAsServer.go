@@ -113,7 +113,7 @@ func kcpConnHdl(kcpconn *kcp.UDPSession) (*yamux.Session, error) {
 				return nil, err
 			}
 			config := yamux.DefaultConfig()
-			config.EnableKeepAlive = false
+			//config.EnableKeepAlive = false
 			session, err := yamux.Client(kcpconn, config)
 			if err != nil {
 				kcpconn.Close()

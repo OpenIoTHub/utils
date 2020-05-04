@@ -46,11 +46,11 @@ func MakeP2PSessionAsClient(stream net.Conn, ctrlmMsg *models.ReqNewP2PCtrlAsCli
 	case *models.OK:
 		{
 			_ = m
-			fmt.Printf("remote net info")
+			log.Printf("remote net info")
 			//TODO:认证；同内网直连；抽象出公共函数？
 			kcpconn, err := kcp.NewConn(fmt.Sprintf("%s:%d", ctrlmMsg.ExternalIp, ctrlmMsg.ExternalPort), nil, 10, 3, listener)
 			if err != nil {
-				fmt.Printf(err.Error())
+				log.Printf(err.Error())
 				return nil, err
 			}
 			//设置
@@ -72,7 +72,7 @@ func MakeP2PSessionAsClient(stream net.Conn, ctrlmMsg *models.ReqNewP2PCtrlAsCli
 			switch m := rawMsg.(type) {
 			case *models.Pong:
 				{
-					fmt.Printf("get pong from p2p kcpconn")
+					log.Printf("get pong from p2p kcpconn")
 					_ = m
 					//TODO:认证
 					config := yamux.DefaultConfig()
@@ -82,18 +82,18 @@ func MakeP2PSessionAsClient(stream net.Conn, ctrlmMsg *models.ReqNewP2PCtrlAsCli
 						if p2pSubSession != nil {
 							p2pSubSession.Close()
 						}
-						fmt.Printf("create sub session err:" + err.Error())
+						log.Printf("create sub session err:" + err.Error())
 						return nil, err
 					}
 					//return p2pSubSession
 					return p2pSubSession, err
 				}
 			default:
-				fmt.Printf("type err")
+				log.Printf("type err")
 			}
 		}
 	default:
-		fmt.Printf("type err")
+		log.Printf("type err")
 	}
 	return nil, errors.New("gateway p2pManagerAsClient 失败")
 }

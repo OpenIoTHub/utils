@@ -1,7 +1,6 @@
 package gateway
 
 import (
-	"errors"
 	"fmt"
 	"github.com/OpenIoTHub/utils/models"
 	"github.com/OpenIoTHub/utils/msg"
@@ -15,11 +14,6 @@ import (
 )
 
 func MakeP2PSessionAsServer(stream net.Conn, ctrlmMsg *models.ReqNewP2PCtrlAsServer, token *models.TokenClaims) (*yamux.Session, error) {
-	if stream != nil {
-		defer stream.Close()
-	} else {
-		return nil, errors.New("stream is nil")
-	}
 	//监听一个随机端口号，接受P2P方的连接
 	externalUDPAddr, listener, err := p2p.GetP2PListener(token)
 	if err != nil {
@@ -28,13 +22,18 @@ func MakeP2PSessionAsServer(stream net.Conn, ctrlmMsg *models.ReqNewP2PCtrlAsSer
 	}
 	p2p.SendPackToPeerByReqNewP2PCtrlAsServer(listener, ctrlmMsg)
 
-	//TODO：发送认证码用于后续校验
-	msg.WriteMsg(stream, &models.RemoteNetInfo{
-		IntranetIp:   listener.LocalAddr().(*net.UDPAddr).IP.String(),
-		IntranetPort: listener.LocalAddr().(*net.UDPAddr).Port,
-		ExternalIp:   externalUDPAddr.IP.String(),
-		ExternalPort: externalUDPAddr.Port,
-	})
+	go func() {
+		defer stream.Close()
+		time.Sleep(time.Second)
+		//TODO：发送认证码用于后续校验
+		msg.WriteMsg(stream, &models.RemoteNetInfo{
+			IntranetIp:   listener.LocalAddr().(*net.UDPAddr).IP.String(),
+			IntranetPort: listener.LocalAddr().(*net.UDPAddr).Port,
+			ExternalIp:   externalUDPAddr.IP.String(),
+			ExternalPort: externalUDPAddr.Port,
+		})
+	}()
+
 	//开始转kcp监听
 	return kcpListener(listener, token)
 }
