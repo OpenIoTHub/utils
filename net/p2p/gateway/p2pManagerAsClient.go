@@ -58,7 +58,7 @@ func MakeP2PSessionAsClient(stream net.Conn, ctrlmMsg *models.ReqNewP2PCtrlAsCli
 			}
 			//TODO:认证
 			config := yamux.DefaultConfig()
-			//config.EnableKeepAlive = false
+			config.EnableKeepAlive = false
 			p2pSubSession, err := yamux.Server(kcpconn, config)
 			if err != nil {
 				if p2pSubSession != nil {

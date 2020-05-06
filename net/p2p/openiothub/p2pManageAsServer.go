@@ -112,7 +112,7 @@ func kcpConnHdl(kcpconn *kcp.UDPSession) (*yamux.Session, error) {
 			log.Println("P2P握手ping")
 			_ = m
 			config := yamux.DefaultConfig()
-			//config.EnableKeepAlive = false
+			config.EnableKeepAlive = false
 			session, err := yamux.Client(kcpconn, config)
 			if err != nil {
 				kcpconn.Close()

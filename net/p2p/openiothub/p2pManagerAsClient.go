@@ -63,7 +63,7 @@ func MakeP2PSessionAsClient(stream net.Conn, TokenModel *models.TokenClaims) (*y
 			}
 			//TODO:认证
 			config := yamux.DefaultConfig()
-			//config.EnableKeepAlive = false
+			config.EnableKeepAlive = false
 			p2pSubSession, err := yamux.Client(kcpconn, config)
 			if err != nil {
 				kcpconn.Close()
