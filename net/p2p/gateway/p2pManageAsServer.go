@@ -29,15 +29,21 @@ func MakeP2PSessionAsServer(stream net.Conn, ctrlmMsg *models.ReqNewP2PCtrlAsSer
 	p2p.SendPackToPeerByReqNewP2PCtrlAsServer(listener, ctrlmMsg)
 
 	//TODO：发送认证码用于后续校验
-	msg.WriteMsg(stream, externalUDPAddr)
-
+	err = msg.WriteMsg(stream, externalUDPAddr)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
 	//开始转kcp监听
 	return kcpListener(listener, token)
 }
 
 //TODO：listener转kcp服务侦听
 func kcpListener(listener *net.UDPConn, token *models.TokenClaims) (*yamux.Session, error) {
-	kcplis, err := kcp.ServeConn(nil, 10, 3, listener)
+	laddr := listener.LocalAddr().String()
+	listener.Close()
+	//kcplis, err := kcp.ServeConn(nil, 10, 3, listener)
+	kcplis, err := kcp.ListenWithOptions(laddr, nil, 10, 3)
 	if err != nil {
 		fmt.Printf(err.Error())
 		return nil, err

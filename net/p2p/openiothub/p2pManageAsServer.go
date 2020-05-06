@@ -61,7 +61,10 @@ func MakeP2PSessionAsServer(stream net.Conn, TokenModel *models.TokenClaims) (*y
 
 //TODO：listener转kcp服务侦听
 func kcpListener(listener *net.UDPConn) (*yamux.Session, error) {
-	kcplis, err := kcp.ServeConn(nil, 10, 3, listener)
+	laddr := listener.LocalAddr().String()
+	listener.Close()
+	//kcplis, err := kcp.ServeConn(nil, 10, 3, listener)
+	kcplis, err := kcp.ListenWithOptions(laddr, nil, 10, 3)
 	if err != nil {
 		log.Println(err.Error())
 		return nil, err

@@ -57,13 +57,14 @@ func GetNewListener(oldListener *net.UDPConn) (newListener *net.UDPConn, err err
 }
 
 //client通过指定listener发送数据到explorer指定的p2p请求地址
-func SendPackToPeerByUDPAddr(listener *net.UDPConn, addr *net.UDPAddr) {
-	log.Println("发送包到远程：", addr.IP, addr.Port)
+func SendPackToPeerByUDPAddr(listener *net.UDPConn, raddr *net.UDPAddr) {
+	log.Println("发送包到远程：", raddr.IP, raddr.Port)
 	//发送5次防止丢包，稳妥点
 	for i := 1; i <= 5; i++ {
-		listener.WriteToUDP([]byte("packFromPeer"), addr)
+		listener.WriteToUDP([]byte("packFromPeer"), raddr)
 		time.Sleep(time.Millisecond * 10)
 	}
+	time.Sleep(time.Millisecond * 200)
 }
 
 //client通过指定listener发送数据到explorer指定的p2p请求地址

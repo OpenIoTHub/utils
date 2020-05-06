@@ -21,12 +21,7 @@ func MakeP2PSessionAsClient(stream net.Conn, ctrlmMsg *models.ReqNewP2PCtrlAsCli
 	} else {
 		return nil, errors.New("stream is nil")
 	}
-	ExternalUDPAddr, oldListener, err := p2p.GetP2PListener(token)
-	if err != nil {
-		log.Println(err.Error())
-		return nil, err
-	}
-	listener, err := p2p.GetNewListener(oldListener)
+	ExternalUDPAddr, listener, err := p2p.GetP2PListener(token)
 	if err != nil {
 		log.Println(err.Error())
 		return nil, err
