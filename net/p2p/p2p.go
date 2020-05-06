@@ -47,6 +47,15 @@ func GetP2PListener(token *models.TokenClaims) (externalUDPAddr *net.UDPAddr, li
 	return
 }
 
+//把旧的Listener关闭创建一个新的Listener返回，本地地址相同
+func GetNewListener(oldListener *net.UDPConn) (newListener *net.UDPConn, err error) {
+	if oldListener != nil {
+		oldListener.Close()
+	}
+	newListener, err = net.ListenUDP("udp", oldListener.LocalAddr().(*net.UDPAddr))
+	return
+}
+
 //client通过指定listener发送数据到explorer指定的p2p请求地址
 func SendPackToPeerByUDPAddr(listener *net.UDPConn, addr *net.UDPAddr) {
 	log.Println("发送包到远程：", addr.IP, addr.Port)
