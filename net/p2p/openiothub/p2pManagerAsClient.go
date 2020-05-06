@@ -61,32 +61,16 @@ func MakeP2PSessionAsClient(stream net.Conn, TokenModel *models.TokenClaims) (*y
 				log.Println(err)
 				return nil, err
 			}
-			//:TODO 超时返回
-			rawMsg, err := msg.ReadMsgWithTimeOut(kcpconn, time.Second*5)
+			//TODO:认证
+			config := yamux.DefaultConfig()
+			//config.EnableKeepAlive = false
+			p2pSubSession, err := yamux.Client(kcpconn, config)
 			if err != nil {
 				kcpconn.Close()
-				log.Println(err)
+				log.Println("create sub session err:" + err.Error())
 				return nil, err
 			}
-			switch m := rawMsg.(type) {
-			case *models.Pong:
-				{
-					log.Println("get pong from p2p kcpconn")
-					_ = m
-					//TODO:认证
-					config := yamux.DefaultConfig()
-					//config.EnableKeepAlive = false
-					p2pSubSession, err := yamux.Client(kcpconn, config)
-					if err != nil {
-						kcpconn.Close()
-						log.Println("create sub session err:" + err.Error())
-						return nil, err
-					}
-					return p2pSubSession, err
-				}
-			default:
-				log.Println("type err")
-			}
+			return p2pSubSession, err
 		}
 	default:
 		log.Println("type err")
