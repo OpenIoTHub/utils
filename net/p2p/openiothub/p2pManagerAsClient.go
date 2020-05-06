@@ -2,7 +2,6 @@ package openiothub
 
 import (
 	"errors"
-	"fmt"
 	"github.com/OpenIoTHub/utils/models"
 	"github.com/OpenIoTHub/utils/msg"
 	nettool "github.com/OpenIoTHub/utils/net"
@@ -46,15 +45,16 @@ func MakeP2PSessionAsClient(stream net.Conn, TokenModel *models.TokenClaims) (*y
 	case *net.UDPAddr:
 		{
 			log.Println("remote net info")
+			log.Println("===", m.String())
 			//TODO:认证；同内网直连；抽象出公共函数？
-			kcpconn, err := kcp.NewConn(fmt.Sprintf("%s:%d", m.IP, m.Port), nil, 10, 3, listener)
+			kcpconn, err := kcp.NewConn(m.String(), nil, 10, 3, listener)
 			//设置
 			if err != nil {
 				log.Println(err.Error())
 				return nil, err
 			}
 			nettool.SetYamuxConn(kcpconn)
-
+			time.Sleep(time.Second)
 			err = msg.WriteMsg(kcpconn, &models.Ping{})
 			if err != nil {
 				kcpconn.Close()
