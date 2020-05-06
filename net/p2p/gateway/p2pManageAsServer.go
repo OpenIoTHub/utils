@@ -75,7 +75,7 @@ func kcpListener(listener *net.UDPConn) (*yamux.Session, error) {
 }
 
 func kcpConnHdl(kcpconn net.Conn) (*yamux.Session, error) {
-	rawMsg, err := msg.ReadMsgWithTimeOut(kcpconn, time.Second*3)
+	rawMsg, err := msg.ReadMsgWithTimeOut(kcpconn, time.Second*5)
 	if err != nil {
 		kcpconn.Close()
 		log.Println(err.Error())

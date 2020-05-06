@@ -36,7 +36,7 @@ func MakeP2PSessionAsClient(stream net.Conn, TokenModel *models.TokenClaims) (*y
 		log.Println(err)
 		return nil, err
 	}
-	rawMsg, err := msg.ReadMsgWithTimeOut(stream, time.Second*5)
+	rawMsg, err := msg.ReadMsg(stream)
 	if err != nil {
 		log.Println(err)
 		return nil, err
@@ -62,7 +62,7 @@ func MakeP2PSessionAsClient(stream net.Conn, TokenModel *models.TokenClaims) (*y
 				return nil, err
 			}
 			//:TODO 超时返回
-			rawMsg, err := msg.ReadMsgWithTimeOut(kcpconn, time.Second*2)
+			rawMsg, err := msg.ReadMsgWithTimeOut(kcpconn, time.Second*5)
 			if err != nil {
 				kcpconn.Close()
 				log.Println(err)
