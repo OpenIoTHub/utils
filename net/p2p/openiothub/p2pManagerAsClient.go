@@ -21,14 +21,14 @@ func MakeP2PSessionAsClient(stream net.Conn, TokenModel *models.TokenClaims) (*y
 	} else {
 		return nil, errors.New("stream is nil")
 	}
-	externalUDPAddr, listener, err := p2p.GetP2PListener(TokenModel)
+	localAddr, externalUDPAddr, err := p2p.GetDialIpPort(TokenModel)
 	if err != nil {
 		log.Println(err.Error())
 		return nil, err
 	}
 	msgsd := &models.ReqNewP2PCtrlAsServer{
-		IntranetIp:   listener.LocalAddr().(*net.UDPAddr).IP.String(),
-		IntranetPort: listener.LocalAddr().(*net.UDPAddr).Port,
+		IntranetIp:   localAddr.IP.String(),
+		IntranetPort: localAddr.Port,
 		ExternalIp:   externalUDPAddr.IP.String(),
 		ExternalPort: externalUDPAddr.Port,
 	}
@@ -46,8 +46,13 @@ func MakeP2PSessionAsClient(stream net.Conn, TokenModel *models.TokenClaims) (*y
 	case *net.UDPAddr:
 		{
 			log.Println("remote net info")
+			udpconn, err := net.DialUDP("udp", localAddr, m)
+			if err != nil {
+				log.Println(err)
+				return nil, err
+			}
 			//TODO:认证；同内网直连；抽象出公共函数？
-			kcpconn, err := kcp.NewConn(fmt.Sprintf("%s:%d", m.IP, m.Port), nil, 10, 3, listener)
+			kcpconn, err := kcp.NewConn(fmt.Sprintf("%s:%d", m.IP, m.Port), nil, 10, 3, udpconn)
 			//设置
 			if err != nil {
 				log.Println(err.Error())

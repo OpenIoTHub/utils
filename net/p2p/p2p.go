@@ -17,11 +17,11 @@ func GetDialIpPort(token *models.TokenClaims) (localAddr, externalAddr *net.UDPA
 		return nil, nil, err
 	}
 	udpconn, err := net.DialUDP("udp", nil, raddr)
-	defer udpconn.Close()
 	if err != nil {
 		log.Println(err.Error())
 		return nil, nil, err
 	}
+	defer udpconn.Close()
 	externalUDPAddr, err := nettool.GetExternalIpPort(udpconn, token)
 	if err != nil {
 		log.Println(err)
@@ -29,7 +29,7 @@ func GetDialIpPort(token *models.TokenClaims) (localAddr, externalAddr *net.UDPA
 	}
 	//return strings.Split(udpconn.LocalAddr().String(), ":")[0]
 	localAddr = udpconn.LocalAddr().(*net.UDPAddr)
-	return localAddr, externalUDPAddr, nil
+	return localAddr, externalUDPAddr, err
 }
 
 //获取一个随机UDP Listen的内部ip，端口，外部ip端口
