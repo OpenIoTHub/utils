@@ -43,11 +43,11 @@ func MakeP2PSessionAsClient(stream net.Conn, TokenModel *models.TokenClaims) (*y
 		return nil, err
 	}
 	switch m := rawMsg.(type) {
-	case *models.RemoteNetInfo:
+	case *net.UDPAddr:
 		{
 			log.Println("remote net info")
 			//TODO:认证；同内网直连；抽象出公共函数？
-			kcpconn, err := kcp.NewConn(fmt.Sprintf("%s:%d", m.ExternalIp, m.ExternalPort), nil, 10, 3, listener)
+			kcpconn, err := kcp.NewConn(fmt.Sprintf("%s:%d", m.IP, m.Port), nil, 10, 3, listener)
 			//设置
 			if err != nil {
 				log.Println(err.Error())

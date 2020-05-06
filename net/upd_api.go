@@ -92,6 +92,7 @@ func GetExternalIpPort(listener *net.UDPConn, token *models.TokenClaims) (*net.U
 	switch m := addr.(type) {
 	case *net.UDPAddr:
 		{
+			log.Printf("GetExternalIpPort:IP:%s,Port:%d", m.IP, m.Port)
 			return m, err
 		}
 

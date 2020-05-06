@@ -26,13 +26,7 @@ func MakeP2PSessionAsClient(stream net.Conn, ctrlmMsg *models.ReqNewP2PCtrlAsCli
 		log.Println(err.Error())
 		return nil, err
 	}
-	msgsd := &models.RemoteNetInfo{
-		IntranetIp:   listener.LocalAddr().(*net.UDPAddr).IP.String(),
-		IntranetPort: listener.LocalAddr().(*net.UDPAddr).Port,
-		ExternalIp:   ExternalUDPAddr.IP.String(),
-		ExternalPort: ExternalUDPAddr.Port,
-	}
-	err = msg.WriteMsg(stream, msgsd)
+	err = msg.WriteMsg(stream, ExternalUDPAddr)
 	if err != nil {
 		log.Println(err)
 		return nil, err
@@ -63,7 +57,7 @@ func MakeP2PSessionAsClient(stream net.Conn, ctrlmMsg *models.ReqNewP2PCtrlAsCli
 				return nil, err
 			}
 
-			rawMsg, err := msg.ReadMsgWithTimeOut(kcpconn, time.Second*3)
+			rawMsg, err := msg.ReadMsgWithTimeOut(kcpconn, time.Second*5)
 			if err != nil {
 				kcpconn.Close()
 				log.Println(err)

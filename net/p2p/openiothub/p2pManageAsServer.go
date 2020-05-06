@@ -42,14 +42,15 @@ func MakeP2PSessionAsServer(stream net.Conn, TokenModel *models.TokenClaims) (*y
 		return nil, err
 	}
 	switch m := rawMsg.(type) {
-	case *models.RemoteNetInfo:
+	case *net.UDPAddr:
 		{
-			p2p.SendPackToPeer(listener, m)
+			p2p.SendPackToPeerByUDPAddr(listener, m)
 			err = msg.WriteMsg(stream, &models.OK{})
 			if err != nil {
 				log.Println(err)
 				return nil, err
 			}
+			log.Println("发送到p2p成功，等待连接")
 			return kcpListener(listener)
 		}
 	default:
@@ -87,6 +88,7 @@ func kcpListener(listener *net.UDPConn) (*yamux.Session, error) {
 	//	从从conn中读取p2p另一方发来的认证消息，认证成功之后包装为mux服务端
 	err = kcplis.SetDeadline(time.Time{})
 	if err != nil {
+		log.Println(err)
 		kcplis.Close()
 	}
 	return kcpConnHdl(kcpconn)
@@ -94,7 +96,7 @@ func kcpListener(listener *net.UDPConn) (*yamux.Session, error) {
 
 func kcpConnHdl(kcpconn *kcp.UDPSession) (*yamux.Session, error) {
 	//:TODO 超时返回
-	rawMsg, err := msg.ReadMsgWithTimeOut(kcpconn, time.Second*2)
+	rawMsg, err := msg.ReadMsgWithTimeOut(kcpconn, time.Second*5)
 	if err != nil {
 		kcpconn.Close()
 		log.Println(err.Error())
