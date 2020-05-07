@@ -51,7 +51,8 @@ func MakeP2PSessionAsServer(stream net.Conn, TokenModel *models.TokenClaims) (*y
 				return nil, err
 			}
 			log.Println("发送到p2p成功，等待连接")
-			defer listener.Close()
+			listener.Close()
+			time.Sleep(time.Second)
 			return kcpListener(listener.LocalAddr().(*net.UDPAddr))
 		}
 	default:

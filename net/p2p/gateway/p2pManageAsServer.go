@@ -26,7 +26,6 @@ func MakeP2PSessionAsServer(stream net.Conn, ctrlmMsg *models.ReqNewP2PCtrlAsSer
 		log.Println(err)
 		return nil, err
 	}
-	defer listener.Close()
 	p2p.SendPackToPeerByReqNewP2PCtrlAsServer(listener, ctrlmMsg)
 
 	//TODO：发送认证码用于后续校验
@@ -35,6 +34,8 @@ func MakeP2PSessionAsServer(stream net.Conn, ctrlmMsg *models.ReqNewP2PCtrlAsSer
 		log.Println(err)
 		return nil, err
 	}
+	listener.Close()
+	time.Sleep(time.Second)
 	//开始转kcp监听
 	return kcpListener(listener.LocalAddr().(*net.UDPAddr))
 }
