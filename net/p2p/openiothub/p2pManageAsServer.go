@@ -51,7 +51,8 @@ func MakeP2PSessionAsServer(stream net.Conn, TokenModel *models.TokenClaims) (*y
 				return nil, err
 			}
 			log.Println("发送到p2p成功，等待连接")
-			return kcpListener(listener)
+			defer listener.Close()
+			return kcpListener(listener.LocalAddr().(*net.UDPAddr))
 		}
 	default:
 		log.Println("不是ReqNewP2PCtrlAsServer")
@@ -60,11 +61,9 @@ func MakeP2PSessionAsServer(stream net.Conn, TokenModel *models.TokenClaims) (*y
 }
 
 //TODO：listener转kcp服务侦听
-func kcpListener(listener *net.UDPConn) (*yamux.Session, error) {
-	laddr := listener.LocalAddr().String()
-	listener.Close()
+func kcpListener(laddr *net.UDPAddr) (*yamux.Session, error) {
 	//kcplis, err := kcp.ServeConn(nil, 10, 3, listener)
-	kcplis, err := kcp.ListenWithOptions(laddr, nil, 10, 3)
+	kcplis, err := kcp.ListenWithOptions(laddr.String(), nil, 10, 3)
 	if err != nil {
 		log.Println(err.Error())
 		return nil, err
@@ -112,7 +111,7 @@ func kcpConnHdl(kcpconn *kcp.UDPSession) (*yamux.Session, error) {
 			log.Println("P2P握手ping")
 			_ = m
 			config := yamux.DefaultConfig()
-			config.EnableKeepAlive = false
+			//config.EnableKeepAlive = false
 			session, err := yamux.Client(kcpconn, config)
 			if err != nil {
 				kcpconn.Close()
