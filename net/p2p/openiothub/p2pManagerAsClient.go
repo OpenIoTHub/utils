@@ -92,4 +92,5 @@ func MakeP2PSessionAsClient(stream net.Conn, TokenModel *models.TokenClaims) (*y
 		log.Println("type err")
 		return nil, err
 	}
+	return nil, errors.New("没有匹配到对方发送过来的UDP地址")
 }
