@@ -76,5 +76,4 @@ func MakeP2PSessionAsClient(stream net.Conn, TokenModel *models.TokenClaims) (*y
 		log.Println("type err")
 		return nil, err
 	}
-	return nil, err
 }
