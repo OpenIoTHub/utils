@@ -22,7 +22,7 @@ func GetDialIpPort(token *models.TokenClaims) (localAddr, externalAddr *net.UDPA
 		return nil, nil, err
 	}
 	defer udpconn.Close()
-	externalUDPAddr, err := nettool.GetExternalIpPort(udpconn, token)
+	externalUDPAddr, err := nettool.GetExternalIpPortByUDP(udpconn, token)
 	if err != nil {
 		log.Println(err)
 		return
@@ -39,7 +39,7 @@ func GetP2PListener(token *models.TokenClaims) (externalUDPAddr *net.UDPAddr, li
 		return
 	}
 	//获取监听的端口的外部ip和端口
-	externalUDPAddr, err = nettool.GetExternalIpPort(listener, token)
+	externalUDPAddr, err = nettool.GetExternalIpPortByUDP(listener, token)
 	if err != nil {
 		log.Println(err)
 		return

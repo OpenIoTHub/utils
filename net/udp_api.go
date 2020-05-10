@@ -38,18 +38,20 @@ func udpListener(listener *net.UDPConn) {
 }
 
 //获取一个listener的外部地址和端口
-func GetExternalIpPortByUDP(listener *net.UDPConn, token *models.TokenClaims) (ip string, port int, err error) {
+func GetExternalIpPortByUDP(listener *net.UDPConn, token *models.TokenClaims) (*net.UDPAddr, error) {
+	var ip string
+	var port int
 	udpaddr, err := net.ResolveUDPAddr("udp", token.Host+":"+strconv.Itoa(token.P2PApiPort))
 	//udpaddr, err := net.ResolveUDPAddr("udp", "tencent-shanghai-v1.host.nat-cloud.com:34321")
 	if err != nil {
 		fmt.Printf("%s", err.Error())
-		return "", 0, err
+		return nil, err
 	}
 
 	err = listener.SetDeadline(time.Now().Add(time.Duration(3 * time.Second)))
 	if err != nil {
 		fmt.Printf("%s", err.Error())
-		return "", 0, err
+		return nil, err
 	}
 
 	listener.WriteToUDP([]byte("getIpPort"), udpaddr)
@@ -60,7 +62,7 @@ func GetExternalIpPortByUDP(listener *net.UDPConn, token *models.TokenClaims) (i
 	log.Println("获取api的UDP包成功，开始解析自己listener出口地址和端口")
 	if err != nil {
 		fmt.Printf("获取listener的出口出错: %s", err.Error())
-		return "", 0, err
+		return nil, err
 	}
 	ipPort := string(data[:n])
 	ip = strings.Split(ipPort, ":")[0]
@@ -68,16 +70,17 @@ func GetExternalIpPortByUDP(listener *net.UDPConn, token *models.TokenClaims) (i
 	if err != nil {
 		fmt.Printf(err.Error())
 		log.Println("解析listener外部出口信息错误")
-		return "", 0, err
+		return nil, err
 	}
 
-	err = listener.SetDeadline(time.Now().Add(time.Duration(99999 * time.Hour)))
+	//err = listener.SetDeadline(time.Now().Add(time.Duration(99999 * time.Hour)))
+	err = listener.SetDeadline(time.Time{})
 	if err != nil {
 		fmt.Printf("%s", err.Error())
-		return "", 0, err
+		return nil, err
 	}
 
 	log.Println("我的公网IP:", strings.Split(ipPort, ":")[0])
 	log.Println("内网的的出口端口:", port)
-	return ip, port, err
+	return &net.UDPAddr{IP: net.ParseIP(ip), Port: port}, err
 }
