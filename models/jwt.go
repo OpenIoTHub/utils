@@ -20,7 +20,7 @@ type TokenClaims struct {
 	jwt.StandardClaims
 }
 
-func GetToken(gatewayConfig GatewayConfig, permission int, expiresecd int64) (token string, err error) {
+func GetToken(gatewayConfig *GatewayConfig, permission int, expiresecd int64) (token string, err error) {
 	fmt.Println("Get Token:")
 	fmt.Println(
 		gatewayConfig.LastId,
