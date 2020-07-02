@@ -2,7 +2,7 @@ package models
 
 import (
 	"fmt"
-	nettool "github.com/OpenIoTHub/utils/net"
+	"github.com/OpenIoTHub/utils/net/ip"
 	"github.com/dgrijalva/jwt-go"
 	uuid "github.com/satori/go.uuid"
 	"log"
@@ -59,7 +59,7 @@ func GetToken(gatewayConfig *GatewayConfig, permission int, expiresecd int64) (t
 
 func GetTokenByServerConfig(serverConfig *ServerConfig, permission int, expiresecd int64) (token string, err error) {
 	uuidStr := uuid.Must(uuid.NewV4()).String()
-	myPublicIp, err := nettool.GetMyPublicIpInfo()
+	myPublicIp, err := ip.GetMyPublicIpInfo()
 	if err != nil {
 		return "", err
 	}
