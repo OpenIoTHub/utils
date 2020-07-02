@@ -2,7 +2,9 @@ package models
 
 import (
 	"fmt"
+	nettool "github.com/OpenIoTHub/utils/net"
 	"github.com/dgrijalva/jwt-go"
+	uuid "github.com/satori/go.uuid"
 	"log"
 	"time"
 )
@@ -53,6 +55,30 @@ func GetToken(gatewayConfig *GatewayConfig, permission int, expiresecd int64) (t
 		return "", err
 	}
 	return tokenStr, nil
+}
+
+func GetTokenByServerConfig(serverConfig *ServerConfig, permission int, expiresecd int64) (token string, err error) {
+	uuidStr := uuid.Must(uuid.NewV4()).String()
+	myPublicIp, err := nettool.GetMyPublicIpInfo()
+	if err != nil {
+		return "", err
+	}
+	gatewayConfig := &GatewayConfig{
+		ConnectionType: "tcp",
+		LastId:         uuidStr,
+		GrpcPort:       1082,
+		Server: &Srever{
+			ServerHost: myPublicIp,
+			TcpPort:    serverConfig.Common.TcpPort,
+			KcpPort:    serverConfig.Common.KcpPort,
+			UdpApiPort: serverConfig.Common.UdpApiPort,
+			KcpApiPort: serverConfig.Common.KcpApiPort,
+			TlsPort:    serverConfig.Common.TlsPort,
+			GrpcPort:   serverConfig.Common.GrpcPort,
+			LoginKey:   serverConfig.Security.LoginKey,
+		},
+	}
+	return GetToken(gatewayConfig, permission, expiresecd)
 }
 
 func DecodeToken(salt, tokenStr string) (*TokenClaims, error) {
