@@ -57,11 +57,11 @@ func GetToken(gatewayConfig *GatewayConfig, permission int, expiresecd int64) (t
 	return tokenStr, nil
 }
 
-func GetTokenByServerConfig(serverConfig *ServerConfig, permission int, expiresecd int64) (token string, err error) {
+func GetTokenByServerConfig(serverConfig *ServerConfig, permission int, expiresecd int64) (gatewayToken, openIoTHubToken string, err error) {
 	uuidStr := uuid.Must(uuid.NewV4()).String()
 	myPublicIp, err := ip.GetMyPublicIpInfo()
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 	gatewayConfig := &GatewayConfig{
 		ConnectionType: "tcp",
@@ -78,7 +78,15 @@ func GetTokenByServerConfig(serverConfig *ServerConfig, permission int, expirese
 			LoginKey:   serverConfig.Security.LoginKey,
 		},
 	}
-	return GetToken(gatewayConfig, permission, expiresecd)
+	gatewayToken, err = GetToken(gatewayConfig, 1, expiresecd)
+	if err != nil {
+		return "", "", err
+	}
+	openIoTHubToken, err = GetToken(gatewayConfig, 2, expiresecd)
+	if err != nil {
+		return "", "", err
+	}
+	return gatewayToken, openIoTHubToken, err
 }
 
 func DecodeToken(salt, tokenStr string) (*TokenClaims, error) {
