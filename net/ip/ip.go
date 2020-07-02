@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
-	"github.com/OpenIoTHub/utils/net"
+	//"github.com/OpenIoTHub/utils/net"
 	"io/ioutil"
 	"log"
 	"net"
@@ -127,7 +127,7 @@ func IsPublicIP(IP net.IP) bool {
 }
 
 func IsChinaIP(IP net.IP) bool {
-	data, err := nettool.Asset("chn_ip.txt")
+	data, err := Asset("chn_ip.txt")
 	if err != nil {
 		log.Println(err.Error())
 		return true
