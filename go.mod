@@ -3,6 +3,7 @@ module github.com/OpenIoTHub/utils
 go 1.13
 
 require (
+	github.com/PuerkitoBio/goquery v1.5.1
 	github.com/aead/chacha20 v0.0.0-20180709150244-8b13a72661da
 	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
