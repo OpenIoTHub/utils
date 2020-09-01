@@ -37,7 +37,7 @@ type ServerConfig struct {
 		HttpsKeyFilePath  string `yaml:"https_key_file_path"`
 	}
 	RedisConfig struct {
-		Enabled  string `yaml:"enabled"`
+		Enabled  bool   `yaml:"enabled"`
 		Network  string `yaml:"network"`
 		Address  string `yaml:"address"`
 		Database int    `yaml:"database"`
