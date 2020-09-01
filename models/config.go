@@ -39,7 +39,7 @@ type ServerConfig struct {
 	RedisConfig struct {
 		Network  string `yaml:"network"`
 		Address  string `yaml:"address"`
-		Database string `yaml:"database"`
+		Database int    `yaml:"database"`
 		NeedAuth bool   `yaml:"needAuth"`
 		Password string `yaml:"password"`
 	}
