@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net"
@@ -65,19 +64,27 @@ type IP struct {
 
 //获取自己的公网ip
 func GetMyPublicIpInfo() (string, error) {
-	url := "http://ifconfig.me/ip"
-	//url := "http://ipinfo.io/ip"
-	resp, err := http.Get(url)
-	if err != nil {
-		return "", err
+	var ipAPIUrl = []string{"http://members.3322.org/dyndns/getip", "http://ifconfig.me/ip", "http://ip.3322.net"}
+	for _, url := range ipAPIUrl {
+		resp, err := http.Get(url)
+		if resp != nil && resp.Body != nil {
+			defer resp.Body.Close()
+		}
+		if err != nil {
+			log.Printf("get public ipv4 err：%s", err)
+			continue
+		}
+		bytes, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			log.Printf("get public ipv4 err：%s", err)
+			continue
+		}
+		ip := net.ParseIP(string(bytes))
+		if ip != nil {
+			return ip.String(), nil
+		}
 	}
-	defer resp.Body.Close()
-	body, _ := ioutil.ReadAll(resp.Body)
-	ip := net.ParseIP(string(body))
-	if ip != nil {
-		return ip.String(), nil
-	}
-	return "", errors.New(fmt.Sprintf("get public addr failed form %s", url))
+	return "", errors.New("can't find my public ip")
 }
 
 func GetIpInfo(ip string) (*IPInfo, error) {
