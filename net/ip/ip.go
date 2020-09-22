@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
-	"errors"
+	"github.com/OpenIoTHub/getip/iputils"
 	"io/ioutil"
 	"log"
 	"net"
@@ -64,27 +64,15 @@ type IP struct {
 
 //获取自己的公网ip
 func GetMyPublicIpInfo() (string, error) {
-	var ipAPIUrl = []string{"http://members.3322.org/dyndns/getip", "http://ifconfig.me/ip", "http://ip.3322.net"}
-	for _, url := range ipAPIUrl {
-		resp, err := http.Get(url)
-		if resp != nil && resp.Body != nil {
-			defer resp.Body.Close()
-		}
-		if err != nil {
-			log.Printf("get public ipv4 err：%s", err)
-			continue
-		}
-		bytes, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			log.Printf("get public ipv4 err：%s", err)
-			continue
-		}
-		ip := net.ParseIP(string(bytes))
-		if ip != nil {
-			return ip.String(), nil
-		}
-	}
-	return "", errors.New("can't find my public ip")
+	return iputils.GetMyPublicIpv4()
+}
+
+func GetMyPublicIpv4() (string, error) {
+	return iputils.GetMyPublicIpv4()
+}
+
+func GetMyPublicIpv6() (string, error) {
+	return iputils.GetMyPublicIpv6()
 }
 
 func GetIpInfo(ip string) (*IPInfo, error) {

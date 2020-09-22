@@ -1,3 +1,5 @@
+github.com/OpenIoTHub/getip v0.1.0 h1:W8iB+PcDz15jJHJTxMZmyXVAc8TRjwJTZ1+JsxCYVc4=
+github.com/OpenIoTHub/getip v0.1.0/go.mod h1:MO10UjKzR2d8p2ajplZu//NsvQ0GMiL7pllh1LEnKIM=
 github.com/aead/chacha20 v0.0.0-20180709150244-8b13a72661da h1:KjTM2ks9d14ZYCvmHS9iAKVt9AyzRSqNU1qabPih5BY=
 github.com/aead/chacha20 v0.0.0-20180709150244-8b13a72661da/go.mod h1:eHEWzANqSiWQsof+nXEI9bUVUyV6F53Fp89EuCh2EAA=
 github.com/cenkalti/backoff v2.2.1+incompatible h1:tNowT99t7UNflLxfYYSlKYsBpXdEet03Pg2g16Swow4=
