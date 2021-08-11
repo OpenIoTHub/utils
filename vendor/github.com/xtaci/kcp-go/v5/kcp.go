@@ -34,8 +34,8 @@ const (
 // monotonic reference time point
 var refTime time.Time = time.Now()
 
-// currentMs returns current elasped monotonic milliseconds since program startup
-func currentMs() uint32 { return uint32(time.Now().Sub(refTime) / time.Millisecond) }
+// currentMs returns current elapsed monotonic milliseconds since program startup
+func currentMs() uint32 { return uint32(time.Since(refTime) / time.Millisecond) }
 
 // output_callback is a prototype which ought capture conn and call conn.Write
 type output_callback func(buf []byte, size int)
@@ -441,7 +441,7 @@ func (kcp *KCP) parse_fastack(sn, ts uint32) {
 	}
 }
 
-func (kcp *KCP) parse_una(una uint32) {
+func (kcp *KCP) parse_una(una uint32) int {
 	count := 0
 	for k := range kcp.snd_buf {
 		seg := &kcp.snd_buf[k]
@@ -455,6 +455,7 @@ func (kcp *KCP) parse_una(una uint32) {
 	if count > 0 {
 		kcp.snd_buf = kcp.remove_front(kcp.snd_buf, count)
 	}
+	return count
 }
 
 // ack append
@@ -534,6 +535,7 @@ func (kcp *KCP) Input(data []byte, regular, ackNoDelay bool) int {
 	var latest uint32 // the latest ack packet
 	var flag int
 	var inSegs uint64
+	var windowSlides bool
 
 	for {
 		var ts, sn, length, una, conv uint32
@@ -569,7 +571,9 @@ func (kcp *KCP) Input(data []byte, regular, ackNoDelay bool) int {
 		if regular {
 			kcp.rmt_wnd = uint32(wnd)
 		}
-		kcp.parse_una(una)
+		if kcp.parse_una(una) > 0 {
+			windowSlides = true
+		}
 		kcp.shrink_buf()
 
 		if cmd == IKCP_CMD_ACK {
@@ -650,7 +654,9 @@ func (kcp *KCP) Input(data []byte, regular, ackNoDelay bool) int {
 		}
 	}
 
-	if ackNoDelay && len(kcp.acklist) > 0 { // ack immediately
+	if windowSlides { // if window has slided, flush
+		kcp.flush(false)
+	} else if ackNoDelay && len(kcp.acklist) > 0 { // ack immediately
 		kcp.flush(true)
 	}
 	return 0
