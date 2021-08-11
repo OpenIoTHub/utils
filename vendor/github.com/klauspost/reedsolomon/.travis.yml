@@ -21,16 +21,16 @@ env:
   - GO111MODULE=off CGO_ENABLED=0
 
 install:
-  - go get ./...
+ - go get ./...
 
 script:
-  - go vet ./...
-  - go test -cpu=1,2 .
-  - go test -tags=noasm -cpu=1,2 .
-  - go build examples/simple-decoder.go
-  - go build examples/simple-encoder.go
-  - go build examples/stream-decoder.go
-  - go build examples/stream-encoder.go
+ - go vet ./...
+ - go test -cpu=1,2 .
+ - go test -tags=noasm -cpu=1,2 .
+ - go build examples/simple-decoder.go
+ - go build examples/simple-encoder.go
+ - go build examples/stream-decoder.go
+ - go build examples/stream-encoder.go
 
 jobs:
   allow_failures:

@@ -2,7 +2,8 @@
 # Make sure to check the documentation at http://goreleaser.com
 
 builds:
-  - id: "cpuid"
+  -
+    id: "cpuid"
     binary: cpuid
     main: ./cmd/cpuid/main.go
     env:
@@ -24,7 +25,8 @@ builds:
       - 7
 
 archives:
-  - id: cpuid
+  -
+    id: cpuid
     name_template: "cpuid-{{ .Os }}_{{ .Arch }}_{{ .Version }}"
     replacements:
       aix: AIX
@@ -48,14 +50,15 @@ changelog:
   sort: asc
   filters:
     exclude:
-      - '^doc:'
-      - '^docs:'
-      - '^test:'
-      - '^tests:'
-      - '^Update\sREADME.md'
+    - '^doc:'
+    - '^docs:'
+    - '^test:'
+    - '^tests:'
+    - '^Update\sREADME.md'
 
 nfpms:
-  - file_name_template: "cpuid_package_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+  -
+    file_name_template: "cpuid_package_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
     vendor: Klaus Post
     homepage: https://github.com/klauspost/cpuid
     maintainer: Klaus Post <klauspost@gmail.com>

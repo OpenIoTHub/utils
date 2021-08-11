@@ -2,6 +2,8 @@ package reedsolomon
 
 import (
 	"runtime"
+
+	"github.com/klauspost/cpuid/v2"
 )
 
 // Option allows to override processing parameters.
