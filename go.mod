@@ -5,7 +5,7 @@ go 1.13
 require (
 	github.com/OpenIoTHub/getip v0.1.2
 	github.com/aead/chacha20 v0.0.0-20180709150244-8b13a72661da
-	github.com/dgrijalva/jwt-go v3.2.0+incompatible
+	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/golang/snappy v0.0.1
 	github.com/grandcat/zeroconf v1.0.0
 	github.com/jacobsa/go-serial v0.0.0-20180131005756-15cf729a72d4
