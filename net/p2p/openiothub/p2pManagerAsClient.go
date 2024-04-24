@@ -13,17 +13,20 @@ import (
 	"time"
 )
 
-//作为客户端主动去连接内网client的方式创建穿透连接
-func MakeP2PSessionAsClient(stream net.Conn, TokenModel *models.TokenClaims) (*yamux.Session, error) {
+// 作为客户端主动去连接内网client的方式创建穿透连接
+func MakeP2PSessionAsClient(stream net.Conn, TokenModel *models.TokenClaims) (p2pSubSession *yamux.Session, listener *net.UDPConn, err error) {
 	if stream != nil {
 		defer stream.Close()
 	} else {
-		return nil, errors.New("stream is nil")
+		return nil, nil, errors.New("stream is nil")
 	}
 	ExternalUDPAddr, listener, err := p2p.GetP2PListener(TokenModel)
 	if err != nil {
 		log.Println(err.Error())
-		return nil, err
+		if listener != nil {
+			listener.Close()
+		}
+		return
 	}
 	msgsd := &models.ReqNewP2PCtrlAsServer{
 		IntranetIp:   listener.LocalAddr().(*net.UDPAddr).IP.String(),
@@ -34,12 +37,15 @@ func MakeP2PSessionAsClient(stream net.Conn, TokenModel *models.TokenClaims) (*y
 	err = msg.WriteMsg(stream, msgsd)
 	if err != nil {
 		log.Println(err)
-		return nil, err
+		listener.Close()
+		return
 	}
-	rawMsg, err := msg.ReadMsg(stream)
+	var rawMsg models.Message
+	rawMsg, err = msg.ReadMsg(stream)
 	if err != nil {
 		log.Println(err)
-		return nil, err
+		listener.Close()
+		return
 	}
 	switch m := rawMsg.(type) {
 	case *net.UDPAddr:
@@ -47,26 +53,34 @@ func MakeP2PSessionAsClient(stream net.Conn, TokenModel *models.TokenClaims) (*y
 			log.Println("remote net info")
 			log.Println("===", m.String())
 			//TODO:认证；同内网直连；抽象出公共函数？
-			kcpconn, err := kcp.NewConn(m.String(), nil, 10, 3, listener)
+			var kcpconn *kcp.UDPSession
+			kcpconn, err = kcp.NewConn(m.String(), nil, 10, 3, listener)
 			//设置
 			if err != nil {
 				log.Println(err.Error())
-				return nil, err
+				listener.Close()
+				if kcpconn != nil {
+					kcpconn.Close()
+				}
+				return
 			}
 			nettool.SetYamuxConn(kcpconn)
 			time.Sleep(time.Second)
 			err = msg.WriteMsg(kcpconn, &models.Ping{})
 			if err != nil {
 				kcpconn.Close()
+				listener.Close()
 				log.Println(err)
-				return nil, err
+				return
 			}
 			//:TODO 超时返回
-			rawMsg, err := msg.ReadMsgWithTimeOut(kcpconn, time.Second*5)
+			//var rawMsg models.Message
+			rawMsg, err = msg.ReadMsgWithTimeOut(kcpconn, time.Second*5)
 			if err != nil {
 				kcpconn.Close()
+				listener.Close()
 				log.Println(err)
-				return nil, err
+				return
 			}
 			switch m := rawMsg.(type) {
 			case *models.Pong:
@@ -76,13 +90,14 @@ func MakeP2PSessionAsClient(stream net.Conn, TokenModel *models.TokenClaims) (*y
 					//TODO:认证
 					config := yamux.DefaultConfig()
 					//config.EnableKeepAlive = false
-					p2pSubSession, err := yamux.Client(kcpconn, config)
+					p2pSubSession, err = yamux.Client(kcpconn, config)
 					if err != nil {
 						kcpconn.Close()
+						listener.Close()
 						log.Println("create sub session err:" + err.Error())
-						return nil, err
+						return nil, nil, err
 					}
-					return p2pSubSession, err
+					return
 				}
 			default:
 				log.Println("type err")
@@ -90,7 +105,9 @@ func MakeP2PSessionAsClient(stream net.Conn, TokenModel *models.TokenClaims) (*y
 		}
 	default:
 		log.Println("type err")
-		return nil, err
+		err = errors.New("message不匹配")
+		return
 	}
-	return nil, errors.New("没有匹配到对方发送过来的UDP地址")
+	err = errors.New("没有匹配到对方发送过来的UDP地址")
+	return
 }

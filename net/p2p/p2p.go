@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-//获取一个随机UDP Dial的内部ip，端口，外部ip端口
+// GetDialIpPort 获取一个随机UDP Dial的内部ip，端口，外部ip端口
 func GetDialIpPort(token *models.TokenClaims) (localAddr, externalAddr *net.UDPAddr, err error) {
 	raddr, err := net.ResolveUDPAddr("udp", token.Host+":"+strconv.Itoa(token.UDPApiPort))
 	//udpaddr, err := net.ResolveUDPAddr("udp", "tencent-shanghai-v1.host.nat-cloud.com:34321")
@@ -32,7 +32,7 @@ func GetDialIpPort(token *models.TokenClaims) (localAddr, externalAddr *net.UDPA
 	return localAddr, externalUDPAddr, err
 }
 
-//获取一个随机UDP Listen的内部ip，端口，外部ip端口
+// GetP2PListener 获取一个随机UDP Listen的内部ip，端口，外部ip端口
 func GetP2PListener(token *models.TokenClaims) (externalUDPAddr *net.UDPAddr, listener *net.UDPConn, err error) {
 	listener, err = net.ListenUDP("udp", nil)
 	if err != nil {
@@ -47,7 +47,7 @@ func GetP2PListener(token *models.TokenClaims) (externalUDPAddr *net.UDPAddr, li
 	return
 }
 
-//把旧的Listener关闭创建一个新的Listener返回，本地地址相同
+// GetNewListener 把旧的Listener关闭创建一个新的Listener返回，本地地址相同
 func GetNewListener(oldListener *net.UDPConn) (newListener *net.UDPConn, err error) {
 	if oldListener != nil {
 		oldListener.Close()
@@ -56,7 +56,7 @@ func GetNewListener(oldListener *net.UDPConn) (newListener *net.UDPConn, err err
 	return
 }
 
-//client通过指定listener发送数据到explorer指定的p2p请求地址
+// SendPackToPeerByUDPAddr client通过指定listener发送数据到explorer指定的p2p请求地址
 func SendPackToPeerByUDPAddr(listener *net.UDPConn, raddr *net.UDPAddr) {
 	log.Println("发送包到远程：", raddr.IP, raddr.Port)
 	//发送5次防止丢包，稳妥点
@@ -67,7 +67,7 @@ func SendPackToPeerByUDPAddr(listener *net.UDPConn, raddr *net.UDPAddr) {
 	time.Sleep(time.Millisecond * 200)
 }
 
-//client通过指定listener发送数据到explorer指定的p2p请求地址
+// SendPackToPeerByRemoteNetInfo client通过指定listener发送数据到explorer指定的p2p请求地址
 func SendPackToPeerByRemoteNetInfo(listener *net.UDPConn, ctrlmMsg *models.RemoteNetInfo) {
 	log.Println("发送包到远程：", ctrlmMsg.ExternalIp, ctrlmMsg.ExternalPort)
 	SendPackToPeerByUDPAddr(listener, &net.UDPAddr{
@@ -76,7 +76,7 @@ func SendPackToPeerByRemoteNetInfo(listener *net.UDPConn, ctrlmMsg *models.Remot
 	})
 }
 
-//client通过指定listener发送数据到explorer指定的p2p请求地址
+// SendPackToPeerByReqNewP2PCtrlAsServer client通过指定listener发送数据到explorer指定的p2p请求地址
 func SendPackToPeerByReqNewP2PCtrlAsServer(listener *net.UDPConn, ctrlmMsg *models.ReqNewP2PCtrlAsServer) {
 	SendPackToPeerByRemoteNetInfo(listener, &models.RemoteNetInfo{
 		IntranetIp:   ctrlmMsg.IntranetIp,
@@ -86,7 +86,7 @@ func SendPackToPeerByReqNewP2PCtrlAsServer(listener *net.UDPConn, ctrlmMsg *mode
 	})
 }
 
-//client通过指定listener发送数据到explorer指定的p2p请求地址
+// SendPackToPeerByReqNewP2PCtrlAsClient client通过指定listener发送数据到explorer指定的p2p请求地址
 func SendPackToPeerByReqNewP2PCtrlAsClient(listener *net.UDPConn, ctrlmMsg *models.ReqNewP2PCtrlAsClient) {
 	SendPackToPeerByRemoteNetInfo(listener, &models.RemoteNetInfo{
 		IntranetIp:   ctrlmMsg.IntranetIp,

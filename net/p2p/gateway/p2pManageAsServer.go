@@ -14,17 +14,17 @@ import (
 	"time"
 )
 
-func MakeP2PSessionAsServer(stream net.Conn, ctrlmMsg *models.ReqNewP2PCtrlAsServer, token *models.TokenClaims) (*yamux.Session, error) {
+func MakeP2PSessionAsServer(stream net.Conn, ctrlmMsg *models.ReqNewP2PCtrlAsServer, token *models.TokenClaims) (sess *yamux.Session, kcplis *kcp.Listener, err error) {
 	if stream != nil {
 		defer stream.Close()
 	} else {
-		return nil, errors.New("stream is nil")
+		return nil, nil, errors.New("stream is nil")
 	}
 	//监听一个随机端口号，接受P2P方的连接
 	externalUDPAddr, listener, err := p2p.GetP2PListener(token)
 	if err != nil {
 		log.Println(err)
-		return nil, err
+		return
 	}
 	p2p.SendPackToPeerByReqNewP2PCtrlAsServer(listener, ctrlmMsg)
 
@@ -32,7 +32,7 @@ func MakeP2PSessionAsServer(stream net.Conn, ctrlmMsg *models.ReqNewP2PCtrlAsSer
 	err = msg.WriteMsg(stream, externalUDPAddr)
 	if err != nil {
 		log.Println(err)
-		return nil, err
+		return
 	}
 	listener.Close()
 	time.Sleep(time.Second)
@@ -40,13 +40,16 @@ func MakeP2PSessionAsServer(stream net.Conn, ctrlmMsg *models.ReqNewP2PCtrlAsSer
 	return kcpListener(listener.LocalAddr().(*net.UDPAddr))
 }
 
-//TODO：listener转kcp服务侦听
-func kcpListener(laddr *net.UDPAddr) (*yamux.Session, error) {
+// TODO：listener转kcp服务侦听
+func kcpListener(laddr *net.UDPAddr) (sess *yamux.Session, kcplis *kcp.Listener, err error) {
 	//kcplis, err := kcp.ServeConn(nil, 10, 3, listener)
-	kcplis, err := kcp.ListenWithOptions(laddr.String(), nil, 10, 3)
+	kcplis, err = kcp.ListenWithOptions(laddr.String(), nil, 10, 3)
 	if err != nil {
 		fmt.Printf(err.Error())
-		return nil, err
+		if kcplis != nil {
+			kcplis.Close()
+		}
+		return
 	}
 	kcplis.SetDeadline(time.Now().Add(time.Second * 5))
 	//为了防范风险，只接受一个kcp请求
@@ -59,7 +62,7 @@ func kcpListener(laddr *net.UDPAddr) (*yamux.Session, error) {
 			kcpconn.Close()
 		}
 		log.Println(err.Error())
-		return nil, err
+		return
 	}
 	//配置
 	nettool.SetYamuxConn(kcpconn)
@@ -70,16 +73,19 @@ func kcpListener(laddr *net.UDPAddr) (*yamux.Session, error) {
 	err = kcplis.SetDeadline(time.Time{})
 	if err != nil {
 		kcplis.Close()
+		return
 	}
-	return kcpConnHdl(kcpconn)
+	sess, err = kcpConnHdl(kcpconn, kcplis)
+	return sess, kcplis, err
 }
 
-func kcpConnHdl(kcpconn net.Conn) (*yamux.Session, error) {
+func kcpConnHdl(kcpconn net.Conn, kcplis *kcp.Listener) (session *yamux.Session, err error) {
 	rawMsg, err := msg.ReadMsgWithTimeOut(kcpconn, time.Second*5)
 	if err != nil {
 		kcpconn.Close()
+		kcplis.Close()
 		log.Println(err.Error())
-		return nil, err
+		return
 	}
 	switch m := rawMsg.(type) {
 	//TODO:初步使用ping、pong握手，下一步应该弄成验证校验身份
@@ -90,21 +96,25 @@ func kcpConnHdl(kcpconn net.Conn) (*yamux.Session, error) {
 			err = msg.WriteMsg(kcpconn, &models.Pong{})
 			if err != nil {
 				kcpconn.Close()
+				kcplis.Close()
 				log.Println(err.Error())
-				return nil, err
+				return
 			}
 			config := yamux.DefaultConfig()
 			//config.EnableKeepAlive = false
-			session, err := yamux.Server(kcpconn, config)
+			session, err = yamux.Server(kcpconn, config)
 			if err != nil {
+				kcpconn.Close()
+				kcplis.Close()
 				log.Println(err.Error())
-				return nil, err
+				return
 			}
-			return session, err
+			return
 		}
 	default:
 		log.Println("获取到了一个未知的P2P握手消息")
 		kcpconn.Close()
+		kcplis.Close()
 		return nil, fmt.Errorf("获取到了一个未知的P2P握手消息")
 	}
 }

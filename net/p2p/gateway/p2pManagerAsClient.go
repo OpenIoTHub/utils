@@ -14,27 +14,36 @@ import (
 	"time"
 )
 
-//作为客户端主动去连接内网client的方式创建穿透连接
-func MakeP2PSessionAsClient(stream net.Conn, ctrlmMsg *models.ReqNewP2PCtrlAsClient, token *models.TokenClaims) (*yamux.Session, error) {
+// 作为客户端主动去连接内网client的方式创建穿透连接
+func MakeP2PSessionAsClient(stream net.Conn, ctrlmMsg *models.ReqNewP2PCtrlAsClient, token *models.TokenClaims) (*yamux.Session, *net.UDPConn, error) {
 	if stream != nil {
 		defer stream.Close()
 	} else {
-		return nil, errors.New("stream is nil")
+		return nil, nil, errors.New("stream is nil")
 	}
 	ExternalUDPAddr, listener, err := p2p.GetP2PListener(token)
 	if err != nil {
 		log.Println(err.Error())
-		return nil, err
+		if listener != nil {
+			listener.Close()
+		}
+		return nil, nil, err
 	}
 	err = msg.WriteMsg(stream, ExternalUDPAddr)
 	if err != nil {
 		log.Println(err)
-		return nil, err
+		if listener != nil {
+			listener.Close()
+		}
+		return nil, nil, err
 	}
 	rawMsg, err := msg.ReadMsg(stream)
 	if err != nil {
 		log.Println(err)
-		return nil, err
+		if listener != nil {
+			listener.Close()
+		}
+		return nil, nil, err
 	}
 	switch m := rawMsg.(type) {
 	case *models.OK:
@@ -45,7 +54,10 @@ func MakeP2PSessionAsClient(stream net.Conn, ctrlmMsg *models.ReqNewP2PCtrlAsCli
 			kcpconn, err := kcp.NewConn(fmt.Sprintf("%s:%d", ctrlmMsg.ExternalIp, ctrlmMsg.ExternalPort), nil, 10, 3, listener)
 			if err != nil {
 				log.Printf(err.Error())
-				return nil, err
+				if listener != nil {
+					listener.Close()
+				}
+				return nil, nil, err
 			}
 			//设置
 			nettool.SetYamuxConn(kcpconn)
@@ -54,13 +66,19 @@ func MakeP2PSessionAsClient(stream net.Conn, ctrlmMsg *models.ReqNewP2PCtrlAsCli
 			if err != nil {
 				kcpconn.Close()
 				log.Println(err)
-				return nil, err
+				if listener != nil {
+					listener.Close()
+				}
+				return nil, nil, err
 			}
 			rawMsg, err := msg.ReadMsgWithTimeOut(kcpconn, time.Second*5)
 			if err != nil {
 				kcpconn.Close()
+				if listener != nil {
+					listener.Close()
+				}
 				log.Println(err)
-				return nil, err
+				return nil, nil, err
 			}
 			switch m := rawMsg.(type) {
 			case *models.Pong:
@@ -75,11 +93,14 @@ func MakeP2PSessionAsClient(stream net.Conn, ctrlmMsg *models.ReqNewP2PCtrlAsCli
 						if p2pSubSession != nil {
 							p2pSubSession.Close()
 						}
+						if listener != nil {
+							listener.Close()
+						}
 						log.Printf("create sub session err:" + err.Error())
-						return nil, err
+						return nil, nil, err
 					}
 					//return p2pSubSession
-					return p2pSubSession, err
+					return p2pSubSession, listener, err
 				}
 			default:
 				log.Printf("type err")
@@ -88,5 +109,5 @@ func MakeP2PSessionAsClient(stream net.Conn, ctrlmMsg *models.ReqNewP2PCtrlAsCli
 	default:
 		log.Printf("type err")
 	}
-	return nil, errors.New("gateway p2pManagerAsClient 失败")
+	return nil, nil, errors.New("gateway p2pManagerAsClient 失败")
 }
