@@ -15,14 +15,10 @@ import (
 
 // 作为客户端主动去连接内网client的方式创建穿透连接
 func MakeP2PSessionAsClient(stream net.Conn, TokenModel *models.TokenClaims) (p2pSubSession *yamux.Session, listener *net.UDPConn, err error) {
-	if stream != nil {
-		defer stream.Close()
-	} else {
-		return nil, nil, errors.New("stream is nil")
-	}
 	ExternalUDPAddr, listener, err := p2p.GetP2PListener(TokenModel)
 	if err != nil {
 		log.Println(err.Error())
+		stream.Close()
 		if listener != nil {
 			listener.Close()
 		}
@@ -37,6 +33,7 @@ func MakeP2PSessionAsClient(stream net.Conn, TokenModel *models.TokenClaims) (p2
 	err = msg.WriteMsg(stream, msgsd)
 	if err != nil {
 		log.Println(err)
+		stream.Close()
 		listener.Close()
 		return
 	}
@@ -44,6 +41,7 @@ func MakeP2PSessionAsClient(stream net.Conn, TokenModel *models.TokenClaims) (p2
 	rawMsg, err = msg.ReadMsg(stream)
 	if err != nil {
 		log.Println(err)
+		stream.Close()
 		listener.Close()
 		return
 	}
@@ -58,6 +56,7 @@ func MakeP2PSessionAsClient(stream net.Conn, TokenModel *models.TokenClaims) (p2
 			//设置
 			if err != nil {
 				log.Println(err.Error())
+				stream.Close()
 				listener.Close()
 				if kcpconn != nil {
 					kcpconn.Close()
@@ -68,6 +67,7 @@ func MakeP2PSessionAsClient(stream net.Conn, TokenModel *models.TokenClaims) (p2
 			time.Sleep(time.Second)
 			err = msg.WriteMsg(kcpconn, &models.Ping{})
 			if err != nil {
+				stream.Close()
 				kcpconn.Close()
 				listener.Close()
 				log.Println(err)
@@ -77,6 +77,7 @@ func MakeP2PSessionAsClient(stream net.Conn, TokenModel *models.TokenClaims) (p2
 			//var rawMsg models.Message
 			rawMsg, err = msg.ReadMsgWithTimeOut(kcpconn, time.Second*5)
 			if err != nil {
+				stream.Close()
 				kcpconn.Close()
 				listener.Close()
 				log.Println(err)
@@ -92,6 +93,7 @@ func MakeP2PSessionAsClient(stream net.Conn, TokenModel *models.TokenClaims) (p2
 					//config.EnableKeepAlive = false
 					p2pSubSession, err = yamux.Client(kcpconn, config)
 					if err != nil {
+						stream.Close()
 						kcpconn.Close()
 						listener.Close()
 						log.Println("create sub session err:" + err.Error())
@@ -100,10 +102,15 @@ func MakeP2PSessionAsClient(stream net.Conn, TokenModel *models.TokenClaims) (p2
 					return
 				}
 			default:
+				stream.Close()
+				kcpconn.Close()
+				listener.Close()
 				log.Println("type err")
 			}
 		}
 	default:
+		stream.Close()
+		listener.Close()
 		log.Println("type err")
 		err = errors.New("message不匹配")
 		return

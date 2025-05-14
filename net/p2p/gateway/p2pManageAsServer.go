@@ -1,7 +1,6 @@
 package gateway
 
 import (
-	"errors"
 	"fmt"
 	"github.com/OpenIoTHub/utils/models"
 	"github.com/OpenIoTHub/utils/msg"
@@ -15,14 +14,13 @@ import (
 )
 
 func MakeP2PSessionAsServer(stream net.Conn, ctrlmMsg *models.ReqNewP2PCtrlAsServer, token *models.TokenClaims) (sess *yamux.Session, kcplis *kcp.Listener, err error) {
-	if stream != nil {
-		defer stream.Close()
-	} else {
-		return nil, nil, errors.New("stream is nil")
-	}
 	//监听一个随机端口号，接受P2P方的连接
 	externalUDPAddr, listener, err := p2p.GetP2PListener(token)
 	if err != nil {
+		stream.Close()
+		if listener != nil {
+			listener.Close()
+		}
 		log.Println(err)
 		return
 	}
@@ -31,9 +29,12 @@ func MakeP2PSessionAsServer(stream net.Conn, ctrlmMsg *models.ReqNewP2PCtrlAsSer
 	//TODO：发送认证码用于后续校验
 	err = msg.WriteMsg(stream, externalUDPAddr)
 	if err != nil {
+		stream.Close()
+		listener.Close()
 		log.Println(err)
 		return
 	}
+	stream.Close()
 	listener.Close()
 	time.Sleep(time.Second)
 	//开始转kcp监听
@@ -51,7 +52,11 @@ func kcpListener(laddr *net.UDPAddr) (sess *yamux.Session, kcplis *kcp.Listener,
 		}
 		return
 	}
-	kcplis.SetDeadline(time.Now().Add(time.Second * 5))
+	err = kcplis.SetDeadline(time.Now().Add(time.Second * 5))
+	if err != nil {
+		kcplis.Close()
+		return nil, nil, err
+	}
 	//为了防范风险，只接受一个kcp请求
 	//for {
 	log.Println("start p2p kcp accpet")
@@ -73,17 +78,22 @@ func kcpListener(laddr *net.UDPAddr) (sess *yamux.Session, kcplis *kcp.Listener,
 	err = kcplis.SetDeadline(time.Time{})
 	if err != nil {
 		kcplis.Close()
+		kcpconn.Close()
 		return
 	}
-	sess, err = kcpConnHdl(kcpconn, kcplis)
+	sess, err = kcpConnHdl(kcpconn)
+	if err != nil {
+		kcplis.Close()
+		kcpconn.Close()
+		return
+	}
 	return sess, kcplis, err
 }
 
-func kcpConnHdl(kcpconn net.Conn, kcplis *kcp.Listener) (session *yamux.Session, err error) {
+func kcpConnHdl(kcpconn net.Conn) (session *yamux.Session, err error) {
 	rawMsg, err := msg.ReadMsgWithTimeOut(kcpconn, time.Second*5)
 	if err != nil {
 		kcpconn.Close()
-		kcplis.Close()
 		log.Println(err.Error())
 		return
 	}
@@ -96,7 +106,6 @@ func kcpConnHdl(kcpconn net.Conn, kcplis *kcp.Listener) (session *yamux.Session,
 			err = msg.WriteMsg(kcpconn, &models.Pong{})
 			if err != nil {
 				kcpconn.Close()
-				kcplis.Close()
 				log.Println(err.Error())
 				return
 			}
@@ -105,7 +114,6 @@ func kcpConnHdl(kcpconn net.Conn, kcplis *kcp.Listener) (session *yamux.Session,
 			session, err = yamux.Server(kcpconn, config)
 			if err != nil {
 				kcpconn.Close()
-				kcplis.Close()
 				log.Println(err.Error())
 				return
 			}
@@ -114,7 +122,6 @@ func kcpConnHdl(kcpconn net.Conn, kcplis *kcp.Listener) (session *yamux.Session,
 	default:
 		log.Println("获取到了一个未知的P2P握手消息")
 		kcpconn.Close()
-		kcplis.Close()
 		return nil, fmt.Errorf("获取到了一个未知的P2P握手消息")
 	}
 }

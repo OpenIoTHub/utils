@@ -15,16 +15,12 @@ import (
 
 func MakeP2PSessionAsServer(stream net.Conn, TokenModel *models.TokenClaims) (sess *yamux.Session, kcplis *kcp.Listener, err error) {
 	//TODO:这里控制连接的处理？
-	if stream != nil {
-		defer stream.Close()
-	} else {
-		return nil, nil, errors.New("stream is nil")
-	}
 	//监听一个随机端口号，接受P2P方的连接
 	ExternalUDPAddr, listener, err := p2p.GetP2PListener(TokenModel)
 	if err != nil {
 		log.Println(err)
 		if listener != nil {
+			stream.Close()
 			listener.Close()
 		}
 		return
@@ -37,12 +33,14 @@ func MakeP2PSessionAsServer(stream net.Conn, TokenModel *models.TokenClaims) (se
 	})
 	if err != nil {
 		log.Println(err)
+		stream.Close()
 		listener.Close()
 		return
 	}
 	rawMsg, err := msg.ReadMsgWithTimeOut(stream, time.Second*5)
 	if err != nil {
 		log.Println(err)
+		stream.Close()
 		listener.Close()
 		return
 	}
@@ -53,15 +51,19 @@ func MakeP2PSessionAsServer(stream net.Conn, TokenModel *models.TokenClaims) (se
 			err = msg.WriteMsg(stream, &models.OK{})
 			if err != nil {
 				log.Println(err)
+				stream.Close()
 				listener.Close()
 				return
 			}
 			log.Println("发送到p2p成功，等待连接")
+			stream.Close()
 			listener.Close()
 			time.Sleep(time.Second)
 			return kcpListener(listener.LocalAddr().(*net.UDPAddr))
 		}
 	default:
+		stream.Close()
+		listener.Close()
 		log.Println("不是ReqNewP2PCtrlAsServer")
 		return nil, nil, errors.New("不是ReqNewP2PCtrlAsServer")
 	}
@@ -78,7 +80,10 @@ func kcpListener(laddr *net.UDPAddr) (sess *yamux.Session, kcplis *kcp.Listener,
 		}
 		return
 	}
-	kcplis.SetDeadline(time.Now().Add(time.Second * 5))
+	err = kcplis.SetDeadline(time.Now().Add(time.Second * 5))
+	if err != nil {
+		kcplis.Close()
+	}
 	//为了防范风险，只接受一个kcp请求
 	//for {
 	log.Println("start p2p kcp accpet")
@@ -140,6 +145,8 @@ func kcpConnHdl(kcpconn *kcp.UDPSession, kcplis *kcp.Listener) (*yamux.Session, 
 			return session, err
 		}
 	default:
+		kcpconn.Close()
+		kcplis.Close()
 		log.Println("获取到了一个未知的P2P握手消息")
 	}
 	return nil, err
