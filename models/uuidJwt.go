@@ -12,7 +12,7 @@ type UuidTokenClaims struct {
 	Role       string
 	Permission []string
 	Txts       map[string]string
-	jwt.StandardClaims
+	jwt.RegisteredClaims
 }
 
 func (t *UuidTokenClaims) IfContainPermission(permission string) bool {
@@ -42,9 +42,9 @@ func GetUuidToken(key, uuid, role string, permission []string, txts map[string]s
 		role,
 		permission,
 		txts,
-		jwt.StandardClaims{
-			NotBefore: time.Now().Unix() - 8*60*60,
-			ExpiresAt: time.Now().Unix() + expiresecd,
+		jwt.RegisteredClaims{
+			NotBefore: jwt.NewNumericDate(time.Now().Add(time.Hour * -24)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 24)),
 		},
 	})
 	tokenStr, err := tokenModel.SignedString([]byte(key))
