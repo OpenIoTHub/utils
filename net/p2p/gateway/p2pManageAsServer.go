@@ -15,7 +15,7 @@ import (
 
 func MakeP2PSessionAsServer(stream net.Conn, ctrlmMsg *models.ReqNewP2PCtrlAsServer, token *models.TokenClaims) (sess *yamux.Session, kcplis *kcp.Listener, err error) {
 	//监听一个随机端口号，接受P2P方的连接
-	externalUDPAddr, listener, err := p2p.GetP2PListener(token)
+	externalUDPAddr, listener, err := p2p.GetP2PListener(token, "gateway_server")
 	if err != nil {
 		stream.Close()
 		if listener != nil {

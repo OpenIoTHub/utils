@@ -9,6 +9,8 @@ import (
 	"time"
 )
 
+var roleUdpLocalPort = make(map[string]int)
+
 // GetDialIpPort 获取一个随机UDP Dial的内部ip，端口，外部ip端口
 func GetDialIpPort(token *models.TokenClaims) (localAddr, externalAddr *net.UDPAddr, err error) {
 	raddr, err := net.ResolveUDPAddr("udp", token.Host+":"+strconv.Itoa(token.UDPApiPort))
@@ -34,11 +36,17 @@ func GetDialIpPort(token *models.TokenClaims) (localAddr, externalAddr *net.UDPA
 }
 
 // GetP2PListener 获取一个随机UDP Listen的内部ip，端口，外部ip端口
-func GetP2PListener(token *models.TokenClaims) (externalUDPAddr *net.UDPAddr, listener *net.UDPConn, err error) {
-	listener, err = net.ListenUDP("udp", nil)
+func GetP2PListener(token *models.TokenClaims, role string) (externalUDPAddr *net.UDPAddr, listener *net.UDPConn, err error) {
+	//TODO 后面应该复用，防止创建太多
+	port := 0
+	if _, ok := roleUdpLocalPort[role]; ok {
+		port = roleUdpLocalPort[role]
+	}
+	listener, err = net.ListenUDP("udp", &net.UDPAddr{Port: port})
 	if err != nil {
 		return
 	}
+	roleUdpLocalPort[role] = listener.LocalAddr().(*net.UDPAddr).Port
 	//获取监听的端口的外部ip和端口
 	externalUDPAddr, err = nettool.GetExternalIpPortByUDP(listener, token)
 	if err != nil {
