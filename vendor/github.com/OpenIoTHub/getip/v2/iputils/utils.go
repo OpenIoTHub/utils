@@ -1,7 +1,7 @@
 package iputils
 
 import (
-	"io/ioutil"
+	"io"
 	"log"
 	"net"
 	"net/http"
@@ -42,7 +42,7 @@ func GetMyPublicIpv4() string {
 			log.Printf("get public ipv4 err：%s", err)
 			continue
 		}
-		bytes, err := ioutil.ReadAll(resp.Body)
+		bytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			log.Printf("get public ipv4 err：%s", err)
 			_ = resp.Body.Close()
@@ -66,7 +66,7 @@ func GetMyPublicIpv6() string {
 			continue
 		}
 		// 读取 IPv6
-		bytes, err := ioutil.ReadAll(resp.Body)
+		bytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			log.Printf("get public ipv6 err：%s", err)
 			_ = resp.Body.Close()

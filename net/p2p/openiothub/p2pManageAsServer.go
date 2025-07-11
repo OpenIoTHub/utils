@@ -2,10 +2,10 @@ package openiothub
 
 import (
 	"errors"
-	"github.com/OpenIoTHub/utils/models"
-	"github.com/OpenIoTHub/utils/msg"
-	nettool "github.com/OpenIoTHub/utils/net"
-	"github.com/OpenIoTHub/utils/net/p2p"
+	"github.com/OpenIoTHub/utils/v2/models"
+	"github.com/OpenIoTHub/utils/v2/msg"
+	nettool "github.com/OpenIoTHub/utils/v2/net"
+	"github.com/OpenIoTHub/utils/v2/net/p2p"
 	"github.com/libp2p/go-yamux"
 	"github.com/xtaci/kcp-go/v5"
 	"log"

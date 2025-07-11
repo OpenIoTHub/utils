@@ -2,7 +2,7 @@ package nettool
 
 import (
 	"fmt"
-	"github.com/OpenIoTHub/utils/models"
+	"github.com/OpenIoTHub/utils/v2/models"
 	"log"
 	"net"
 	"strconv"
@@ -39,7 +39,7 @@ func udpListener(listener *net.UDPConn) {
 	}
 }
 
-//获取一个listener的外部地址和端口
+// 获取一个listener的外部地址和端口
 func GetExternalIpPortByUDP(listener *net.UDPConn, token *models.TokenClaims) (*net.UDPAddr, error) {
 	var ip string
 	var port int

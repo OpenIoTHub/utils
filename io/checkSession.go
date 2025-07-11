@@ -1,8 +1,8 @@
 package io
 
 import (
-	"github.com/OpenIoTHub/utils/models"
-	"github.com/OpenIoTHub/utils/msg"
+	"github.com/OpenIoTHub/utils/v2/models"
+	"github.com/OpenIoTHub/utils/v2/msg"
 	"github.com/libp2p/go-yamux"
 	"github.com/pkg/errors"
 	"log"

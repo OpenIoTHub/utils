@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/OpenIoTHub/utils/models"
+	"github.com/OpenIoTHub/utils/v2/models"
 	"github.com/libp2p/go-msgio"
 	"io"
 	"reflect"
@@ -37,7 +37,7 @@ func ReadMsg(c io.Reader) (msg models.Message, err error) {
 	return UnPack(typeString, buffer)
 }
 
-//读取Msg超时错误返回
+// 读取Msg超时错误返回
 func ReadMsgWithTimeOut(c io.Reader, t time.Duration) (msg models.Message, err error) {
 	var typeString string
 	var buffer []byte

@@ -3,8 +3,8 @@ package nettool
 import (
 	"errors"
 	"fmt"
-	"github.com/OpenIoTHub/utils/models"
-	"github.com/OpenIoTHub/utils/msg"
+	"github.com/OpenIoTHub/utils/v2/models"
+	"github.com/OpenIoTHub/utils/v2/msg"
 	"github.com/xtaci/kcp-go/v5"
 	"log"
 	"net"
@@ -60,7 +60,7 @@ func kcpConnHdl(conn *kcp.UDPSession) {
 	}
 }
 
-//获取一个listener的外部地址和端口
+// 获取一个listener的外部地址和端口
 func GetExternalIpPortByKCP(listener *net.UDPConn, token *models.TokenClaims) (*net.UDPAddr, error) {
 	//TODO：使用给定的Listener
 	conn, err := kcp.NewConn(fmt.Sprintf("%s:%d", token.Host, token.KCPApiPort), nil, 10, 3, listener)

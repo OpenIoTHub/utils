@@ -1,8 +1,8 @@
 package p2p
 
 import (
-	"github.com/OpenIoTHub/utils/models"
-	nettool "github.com/OpenIoTHub/utils/net"
+	"github.com/OpenIoTHub/utils/v2/models"
+	nettool "github.com/OpenIoTHub/utils/v2/net"
 	"log"
 	"net"
 	"strconv"

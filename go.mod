@@ -1,11 +1,11 @@
-module github.com/OpenIoTHub/utils
+module github.com/OpenIoTHub/utils/v2
 
-go 1.23.0
+go 1.24
 
-toolchain go1.24.2
+toolchain go1.24.4
 
 require (
-	github.com/OpenIoTHub/getip v0.1.4
+	github.com/OpenIoTHub/getip/v2 v2.0.0
 	github.com/aead/chacha20 v0.0.0-20180709150244-8b13a72661da
 	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/golang/snappy v0.0.1
@@ -32,6 +32,6 @@ require (
 	github.com/templexxx/xorsimd v0.4.1 // indirect
 	github.com/tjfoc/gmsm v1.3.2 // indirect
 	golang.org/x/net v0.0.0-20200707034311-ab3426394381 // indirect
-	golang.org/x/sys v0.33.0 // indirect
+	golang.org/x/sys v0.34.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
 )

@@ -5,7 +5,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/OpenIoTHub/getip/iputils"
+	"github.com/OpenIoTHub/getip/v2/iputils"
 	"io/ioutil"
 	"log"
 	"net"
@@ -13,7 +13,7 @@ import (
 	"strings"
 )
 
-//获取所有内网ip
+// 获取所有内网ip
 func GetIntranetIp() string {
 	intranetIps := ""
 	addrs, err := net.InterfaceAddrs()
@@ -41,7 +41,7 @@ func GetIntranetIp() string {
 	return intranetIps
 }
 
-//淘宝接口：获取ip信息
+// 淘宝接口：获取ip信息
 type IPInfo struct {
 	Code int `json:"code"`
 	Data IP  `json:"data"`
@@ -63,7 +63,7 @@ type IP struct {
 	IspId     string `json:"isp_id"`
 }
 
-//获取自己的公网ip
+// 获取自己的公网ip
 func GetMyPublicIpInfo() (string, error) {
 	return GetMyPublicIpv4()
 }
@@ -109,9 +109,9 @@ func GetIpInfo(ip string) (*IPInfo, error) {
 	return &result, err
 }
 
-//10.0.0.0/8：10.0.0.0～10.255.255.255
-//172.16.0.0/12：172.16.0.0～172.31.255.255
-//192.168.0.0/16：192.168.0.0～192.168.255.255
+// 10.0.0.0/8：10.0.0.0～10.255.255.255
+// 172.16.0.0/12：172.16.0.0～172.31.255.255
+// 192.168.0.0/16：192.168.0.0～192.168.255.255
 func IsPublicIP(IP net.IP) bool {
 	if IP.IsLoopback() || IP.IsLinkLocalMulticast() || IP.IsLinkLocalUnicast() {
 		return false

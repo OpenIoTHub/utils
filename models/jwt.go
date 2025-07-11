@@ -2,7 +2,7 @@ package models
 
 import (
 	"fmt"
-	"github.com/OpenIoTHub/utils/net/ip"
+	"github.com/OpenIoTHub/utils/v2/net/ip"
 	"github.com/golang-jwt/jwt/v5"
 	uuid "github.com/satori/go.uuid"
 	"log"

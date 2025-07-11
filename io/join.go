@@ -1,7 +1,7 @@
 package io
 
 import (
-	_ "github.com/OpenIoTHub/utils/pool"
+	_ "github.com/OpenIoTHub/utils/v2/pool"
 	"io"
 	_ "sync"
 )

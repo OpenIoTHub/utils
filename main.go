@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/OpenIoTHub/utils/models"
+	"github.com/OpenIoTHub/utils/v2/models"
 	"reflect"
 )
 
