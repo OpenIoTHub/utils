@@ -15,7 +15,7 @@ import (
 
 // 作为客户端主动去连接内网client的方式创建穿透连接
 func MakeP2PSessionAsClient(stream net.Conn, TokenModel *models.TokenClaims) (p2pSubSession *yamux.Session, listener *net.UDPConn, err error) {
-	ExternalUDPAddr, listener, err := p2p.GetP2PListener(TokenModel, "openiothub_client")
+	ExternalUDPAddr, listener, err := p2p.GetP2PListener(TokenModel)
 	if err != nil {
 		log.Println(err.Error())
 		stream.Close()

@@ -16,7 +16,7 @@ import (
 
 // 作为客户端主动去连接内网client的方式创建穿透连接
 func MakeP2PSessionAsClient(stream net.Conn, ctrlmMsg *models.ReqNewP2PCtrlAsClient, token *models.TokenClaims) (*yamux.Session, *net.UDPConn, error) {
-	ExternalUDPAddr, listener, err := p2p.GetP2PListener(token, "gateway_client")
+	ExternalUDPAddr, listener, err := p2p.GetP2PListener(token)
 	if err != nil {
 		log.Println(err.Error())
 		if listener != nil {

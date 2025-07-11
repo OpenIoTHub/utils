@@ -16,7 +16,7 @@ import (
 func MakeP2PSessionAsServer(stream net.Conn, TokenModel *models.TokenClaims) (sess *yamux.Session, kcplis *kcp.Listener, err error) {
 	//TODO:这里控制连接的处理？
 	//监听一个随机端口号，接受P2P方的连接
-	ExternalUDPAddr, listener, err := p2p.GetP2PListener(TokenModel, "openiothub_server")
+	ExternalUDPAddr, listener, err := p2p.GetP2PListener(TokenModel)
 	if err != nil {
 		log.Println(err)
 		if listener != nil {
