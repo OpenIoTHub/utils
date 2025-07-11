@@ -32,7 +32,7 @@ func udpListener(listener *net.UDPConn) {
 		go func() {
 			_, err = listener.WriteToUDP([]byte(remoteAddr.String()), remoteAddr)
 			if err != nil {
-				log.Printf(err.Error())
+				log.Println(err.Error())
 				return
 			}
 		}()
@@ -69,7 +69,7 @@ func GetExternalIpPortByUDP(listener *net.UDPConn, token *models.TokenClaims) (*
 	ip = strings.Split(ipPort, ":")[0]
 	port, err = strconv.Atoi(strings.Split(ipPort, ":")[1])
 	if err != nil {
-		fmt.Printf(err.Error())
+		fmt.Println(err.Error())
 		log.Println("解析listener外部出口信息错误")
 		return nil, err
 	}

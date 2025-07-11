@@ -47,7 +47,7 @@ func MakeP2PSessionAsClient(stream net.Conn, ctrlmMsg *models.ReqNewP2PCtrlAsCli
 			//TODO:认证；同内网直连；抽象出公共函数？
 			kcpconn, err := kcp.NewConn(fmt.Sprintf("%s:%d", ctrlmMsg.ExternalIp, ctrlmMsg.ExternalPort), nil, 10, 3, listener)
 			if err != nil {
-				log.Printf(err.Error())
+				log.Println(err.Error())
 				listener.Close()
 				stream.Close()
 				if kcpconn != nil {
@@ -90,7 +90,7 @@ func MakeP2PSessionAsClient(stream net.Conn, ctrlmMsg *models.ReqNewP2PCtrlAsCli
 						listener.Close()
 						stream.Close()
 						kcpconn.Close()
-						log.Printf("create sub session err:" + err.Error())
+						log.Println("create sub session err:" + err.Error())
 						return nil, nil, err
 					}
 					//return p2pSubSession

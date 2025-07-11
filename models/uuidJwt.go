@@ -49,7 +49,7 @@ func GetUuidToken(key, uuid, role string, permission []string, txts map[string]s
 	})
 	tokenStr, err := tokenModel.SignedString([]byte(key))
 	if err != nil {
-		fmt.Printf(err.Error())
+		fmt.Println(err.Error())
 		return "", err
 	}
 	return tokenStr, nil

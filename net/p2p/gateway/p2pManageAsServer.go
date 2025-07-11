@@ -46,7 +46,7 @@ func kcpListener(laddr *net.UDPAddr) (sess *yamux.Session, kcplis *kcp.Listener,
 	//kcplis, err := kcp.ServeConn(nil, 10, 3, listener)
 	kcplis, err = kcp.ListenWithOptions(laddr.String(), nil, 10, 3)
 	if err != nil {
-		fmt.Printf(err.Error())
+		fmt.Println(err.Error())
 		if kcplis != nil {
 			kcplis.Close()
 		}
