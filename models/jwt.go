@@ -58,7 +58,7 @@ func GetToken(loginWithServer *LoginWithServer, permission []string, expiresecd 
 		map[string]string{},
 		jwt.RegisteredClaims{
 			NotBefore: jwt.NewNumericDate(time.Now().Add(time.Hour * -24)),
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 24)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Second * time.Duration(expiresecd))),
 		},
 	})
 	tokenStr, err := tokenModel.SignedString([]byte(loginWithServer.Server.LoginKey))
